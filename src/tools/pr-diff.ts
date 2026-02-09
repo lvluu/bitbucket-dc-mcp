@@ -1,0 +1,119 @@
+import { z } from "zod";
+import { getClient, prPath } from "../lib/client.js";
+import { formatError, jsonResult, textResult } from "../lib/errors.js";
+import { fetchPage } from "../lib/pagination.js";
+import type { RegisterableModule } from "../registry/types.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+
+// Shared description constants
+const DESC_PROJECT_KEY = "Project key";
+const DESC_REPO_SLUG = "Repository slug";
+const DESC_ITEMS_PER_PAGE = "Items per page";
+const DESC_START_INDEX = "Start index";
+const DESC_FETCH_ALL_PAGES = "Fetch all pages";
+
+const prDiffModule: RegisterableModule = {
+  type: "tool",
+  name: "pr-diff",
+  description: "Bitbucket DC pull request diff, patch, and change operations",
+  register(server: McpServer) {
+    server.tool(
+      "getPullRequestDiff",
+      "Get the raw diff for a pull request",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+        contextLines: z.number().optional().describe("Number of context lines in diff"),
+        withComments: z.boolean().optional().describe("Include comments in diff response"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const params: Record<string, unknown> = {};
+          if (args.contextLines !== undefined) params.contextLines = args.contextLines;
+          if (args.withComments !== undefined) params.withComments = args.withComments;
+          const response = await client.get(
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}/diff`,
+            { params }
+          );
+          return jsonResult(response.data);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
+      "streamPullRequestDiff",
+      "Stream the raw unified diff for a pull request as plain text",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const response = await client.get(
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}.diff`,
+            { headers: { Accept: "text/plain" }, responseType: "text", maxRedirects: 5 }
+          );
+          return textResult(response.data as string);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
+      "getPullRequestPatch",
+      "Get the pull request as a patch file",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const response = await client.get(
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}.patch`,
+            { headers: { Accept: "text/plain" }, responseType: "text", maxRedirects: 5 }
+          );
+          return textResult(response.data as string);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
+      "getPullRequestChanges",
+      "Get the list of changed files in a pull request",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+        limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
+        start: z.number().optional().describe(DESC_START_INDEX),
+        all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const result = await fetchPage(
+            client,
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}/changes`,
+            { limit: args.limit, start: args.start, all: args.all }
+          );
+          return jsonResult(result.values);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+  },
+};
+
+export default prDiffModule;
