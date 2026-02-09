@@ -36,7 +36,7 @@ npx bitbucket-dc-mcp
 #### 1. Install dependencies
 
 ```bash
-npm install
+pnpm install
 ```
 
 #### 2. Configure environment
@@ -63,7 +63,7 @@ PORT=3000
 #### 3. Build and run
 
 ```bash
-npm run build
+pnpm run build
 node build/index.js
 ```
 
@@ -94,7 +94,7 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 Streamable HTTP transport for web deployments and remote access:
 
 ```bash
-npm run serve:http
+pnpm run serve:http
 ```
 
 Endpoints:
@@ -108,7 +108,7 @@ Endpoints:
 Traditional stdio transport for local clients like Claude Desktop:
 
 ```bash
-npm run serve:stdio
+pnpm run serve:stdio
 ```
 
 ## Client Integration
@@ -216,7 +216,7 @@ MCP_TRANSPORT=stdio \
 npx bitbucket-dc-mcp
 ```
 
-Share this command and the configuration instructions with your coworkers. No Docker setup is needed.
+Share this command and the configuration instructions with your coworkers.
 
 ## Development
 
@@ -224,26 +224,26 @@ Share this command and the configuration instructions with your coworkers. No Do
 
 | Command | Description |
 |---------|-------------|
-| `npm run build` | Compile TypeScript to `build/` |
-| `npm run typecheck` | Type-check without emitting |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Auto-fix ESLint issues |
-| `npm test` | Run all tests |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run inspect` | Build + launch MCP Inspector (stdio) |
-| `npm run inspect:http` | MCP Inspector against HTTP endpoint |
-| `npm run dev` | Build + interactive JSON-RPC REPL |
-| `npm run knip` | Find unused exports/dependencies |
-| `npm run gen:tool` | Generate a new tool module with test |
+| `pnpm run build` | Compile TypeScript to `build/` |
+| `pnpm run typecheck` | Type-check without emitting |
+| `pnpm run lint` | Run ESLint |
+| `pnpm run lint:fix` | Auto-fix ESLint issues |
+| `pnpm test` | Run all tests |
+| `pnpm run test:watch` | Run tests in watch mode |
+| `pnpm run inspect` | Build + launch MCP Inspector (stdio) |
+| `pnpm run inspect:http` | MCP Inspector against HTTP endpoint |
+| `pnpm run dev` | Build + interactive JSON-RPC REPL |
+| `pnpm run knip` | Find unused exports/dependencies |
+| `pnpm run gen:tool` | Generate a new tool module with test |
 
 ### Testing with MCP Inspector
 
 ```bash
 # Stdio mode
-npm run inspect
+pnpm run inspect
 
 # HTTP mode (start server first, then in another terminal)
-npm run inspect:http
+pnpm run inspect:http
 ```
 
 The MCP Inspector provides an interactive UI to browse and test all registered tools.
@@ -253,7 +253,7 @@ The MCP Inspector provides an interactive UI to browse and test all registered t
 1. Create `src/tools/my-domain.ts` (or add to an existing domain file)
 2. Export a default `RegisterableModule` that registers tools in its `register()` function
 3. The auto-loader discovers it automatically on next build
-4. Or use the generator: `npm run gen:tool`
+4. Or use the generator: `pnpm run gen:tool`
 
 See existing files in `src/tools/` for examples.
 
@@ -262,7 +262,7 @@ See existing files in `src/tools/` for examples.
 | Issue | Solution |
 |-------|----------|
 | `BITBUCKET_URL is required` | Set the `BITBUCKET_URL` environment variable or add it to `.env` |
-| `Cannot find module` errors | Run `npm run build` before starting the server |
+| `Cannot find module` errors | Run `pnpm run build` before starting the server |
 | `401 Unauthorized` | Check your token or username/password credentials |
 | `deleteBranch is disabled` | Set `BITBUCKET_ENABLE_DANGEROUS=true` to enable destructive operations |
 | Tools not loading | Verify module has a valid default export matching `RegisterableModule` |

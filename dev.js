@@ -2,7 +2,7 @@
 
 /**
  * Development script for testing MCP server via stdio
- * Usage: npm run dev
+ * Usage: pnpm run dev
  * 
  * This script starts the MCP server and allows you to interact with it by
  * typing or pasting JSON-RPC messages directly into the terminal.
