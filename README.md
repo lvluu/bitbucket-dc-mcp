@@ -1,12 +1,5 @@
 # Bitbucket DC MCP Server
 
-<div align="center">
-
-[![MCP](https://img.shields.io/badge/MCP-v1.20-blue)](https://modelcontextprotocol.io)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D20.11.0-green)](https://nodejs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes **Bitbucket Data Center REST API v1.0** as tools for AI assistants.
 
 </div>
@@ -118,38 +111,6 @@ Traditional stdio transport for local clients like Claude Desktop:
 npm run serve:stdio
 ```
 
-## Available Tools
-
-### Projects (4 tools)
-`listProjects` · `getProject` · `createProject` · `updateProject`
-
-### Repositories (6 tools)
-`listRepositories` · `getRepository` · `createRepository` · `forkRepository` · `getDefaultBranch` · `setDefaultBranch`
-
-### Pull Requests (10 tools)
-`listPullRequests` · `getPullRequest` · `createPullRequest` · `updatePullRequest` · `mergePullRequest` · `declinePullRequest` · `reopenPullRequest` · `approvePullRequest` · `unapprovePullRequest` · `canMergePullRequest`
-
-### PR Comments (5 tools)
-`listPRComments` · `addPRComment` · `getPRComment` · `updatePRComment` · `deletePRComment`
-
-### PR Diff & Changes (4 tools)
-`getPullRequestDiff` · `streamPullRequestDiff` · `getPullRequestPatch` · `getPullRequestChanges`
-
-### PR Activity (3 tools)
-`getPullRequestActivity` · `getPullRequestCommits` · `getPullRequestParticipants`
-
-### PR Tasks (3 tools)
-`listPRTasks` · `addBlockerComment` · `resolveTask`
-
-### Branches & Tags (5 tools)
-`listBranches` · `createBranch` · `deleteBranch` · `listTags` · `createTag`
-
-### Commits (4 tools)
-`listCommits` · `getCommit` · `getCommitChanges` · `getCommitDiff`
-
-### Files (4 tools)
-`browseFiles` · `getFileContent` · `editFile` · `listFiles`
-
 ## Client Integration
 
 ### VS Code / GitHub Copilot
@@ -244,53 +205,18 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
 }
 ```
 
-### Custom Clients
+## Sharing & Installation
 
-```typescript
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-
-const transport = new StdioClientTransport({
-  command: "npx",
-  args: ["-y", "bitbucket-dc-mcp"],
-  env: {
-    BITBUCKET_URL: "https://bitbucket.yourcompany.com",
-    BITBUCKET_TOKEN: "your-token",
-    MCP_TRANSPORT: "stdio",
-  },
-});
-
-const client = new Client({ name: "my-client", version: "1.0.0" }, { capabilities: {} });
-await client.connect(transport);
-
-// List projects
-const result = await client.callTool({ name: "listProjects", arguments: {} });
-```
-
-## Docker
-
-### Build and run
+The recommended way to share and run this MCP server internally is via `npx` (no install required):
 
 ```bash
-docker compose up --build
+BITBUCKET_URL=https://bitbucket.yourcompany.com \
+BITBUCKET_TOKEN=your-token \
+MCP_TRANSPORT=stdio \
+npx bitbucket-dc-mcp
 ```
 
-The container runs in HTTP mode on port 3000 by default. Pass Bitbucket credentials via environment variables:
-
-```bash
-docker run -p 3000:3000 \
-  -e BITBUCKET_URL="https://bitbucket.yourcompany.com" \
-  -e BITBUCKET_TOKEN="your-token" \
-  bitbucket-dc-mcp
-```
-
-### Development with Docker
-
-```bash
-docker compose --profile dev up mcp-server-starter-dev
-```
-
-Mounts source code for live reloading on port 3001.
+Share this command and the configuration instructions with your coworkers. No Docker setup is needed.
 
 ## Development
 
@@ -330,35 +256,6 @@ The MCP Inspector provides an interactive UI to browse and test all registered t
 4. Or use the generator: `npm run gen:tool`
 
 See existing files in `src/tools/` for examples.
-
-## Architecture
-
-```
-src/
-├── index.ts              # Entry point → boot()
-├── server/boot.ts        # Config loading, client init, transport setup
-├── lib/
-│   ├── client.ts         # Singleton Axios client, path helpers
-│   ├── config.ts         # Environment variable loading & validation
-│   ├── pagination.ts     # Bitbucket DC pagination (start/limit/isLastPage)
-│   └── errors.ts         # Error formatting, response helpers
-├── registry/
-│   ├── auto-loader.ts    # Discovers & registers modules from tools/resources/prompts
-│   ├── module-processor.ts
-│   ├── helpers.ts
-│   └── types.ts          # RegisterableModule interface
-└── tools/                # One file per domain, each registers multiple tools
-    ├── projects.ts
-    ├── repositories.ts
-    ├── pull-requests.ts
-    ├── pr-comments.ts
-    ├── pr-diff.ts
-    ├── pr-activity.ts
-    ├── pr-tasks.ts
-    ├── branches.ts
-    ├── commits.ts
-    └── files.ts
-```
 
 ## Troubleshooting
 
