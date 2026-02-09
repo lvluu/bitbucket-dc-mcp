@@ -1,8 +1,20 @@
 # Bitbucket DC MCP Server — Setup Instructions
 
-You are helping a user set up the **bitbucket-dc-mcp** MCP server. The server is already installed locally on their machine. Your job is to collect the required information and output the correct configuration.
+You are helping a user set up the **bitbucket-dc-mcp** MCP server. Your job is to walk them through installing it globally from source, then collect their credentials and output the correct client configuration.
 
-## Step 1 — Gather information
+## Step 1 — Install globally from source
+
+Run these commands from the repo root:
+
+```bash
+pnpm install
+pnpm run build
+pnpm link --global
+```
+
+After this, `bitbucket-dc-mcp` is available as a global command.
+
+## Step 2 — Gather information
 
 Ask the user the following questions (skip any they've already answered):
 
@@ -18,17 +30,11 @@ Ask the user the following questions (skip any they've already answered):
    - **Claude Desktop** (`claude_desktop_config.json`)
    - **Other / manual** (environment variables only)
 
-## Step 2 — Build the configuration
+## Step 3 — Build the configuration
 
-Use the answers to produce the correct config block. The server is installed locally, so use `node` as the command pointing to the local build output.
+Use the answers to produce the correct config block. Since the tool is installed globally, use `bitbucket-dc-mcp` as the command directly (no `node`, no `npx`).
 
-### Local server command
-
-```
-node <absolute-path-to-repo>/build/index.js
-```
-
-The required environment variables are:
+### Environment variables reference
 
 | Variable | Required | Notes |
 |----------|----------|-------|
@@ -48,8 +54,7 @@ The required environment variables are:
   "servers": {
     "bitbucket-dc-mcp": {
       "type": "stdio",
-      "command": "node",
-      "args": ["{{REPO_PATH}}/build/index.js"],
+      "command": "bitbucket-dc-mcp",
       "env": {
         "BITBUCKET_URL": "{{BITBUCKET_URL}}",
         "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -68,8 +73,7 @@ The required environment variables are:
     "servers": {
       "bitbucket-dc-mcp": {
         "type": "stdio",
-        "command": "node",
-        "args": ["{{REPO_PATH}}/build/index.js"],
+        "command": "bitbucket-dc-mcp",
         "env": {
           "BITBUCKET_URL": "{{BITBUCKET_URL}}",
           "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -88,7 +92,7 @@ claude mcp add bitbucket-dc-mcp \
   -e BITBUCKET_URL={{BITBUCKET_URL}} \
   -e BITBUCKET_TOKEN={{TOKEN}} \
   -e MCP_TRANSPORT=stdio \
-  -- node {{REPO_PATH}}/build/index.js
+  -- bitbucket-dc-mcp
 ```
 
 ### Claude Code — `.mcp.json`
@@ -97,8 +101,7 @@ claude mcp add bitbucket-dc-mcp \
 {
   "mcpServers": {
     "bitbucket-dc-mcp": {
-      "command": "node",
-      "args": ["{{REPO_PATH}}/build/index.js"],
+      "command": "bitbucket-dc-mcp",
       "env": {
         "BITBUCKET_URL": "{{BITBUCKET_URL}}",
         "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -115,8 +118,7 @@ claude mcp add bitbucket-dc-mcp \
 {
   "mcpServers": {
     "bitbucket-dc-mcp": {
-      "command": "node",
-      "args": ["{{REPO_PATH}}/build/index.js"],
+      "command": "bitbucket-dc-mcp",
       "env": {
         "BITBUCKET_URL": "{{BITBUCKET_URL}}",
         "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -127,10 +129,10 @@ claude mcp add bitbucket-dc-mcp \
 }
 ```
 
-## Step 3 — Output
+## Step 4 — Output
 
 1. Replace all `{{...}}` placeholders with the user's actual values.
 2. If the user chose basic auth, replace the `BITBUCKET_TOKEN` entry with `BITBUCKET_USERNAME` and `BITBUCKET_PASSWORD`.
 3. If the user provided a default project, add `"BITBUCKET_DEFAULT_PROJECT": "{{PROJECT_KEY}}"` to the `env` block.
 4. Print the final configuration block ready to copy-paste.
-5. Remind the user to run `pnpm run build` in the repo before first use (the server runs from the compiled `build/` output).
+5. Tell the user where the config file lives and how to verify it works.
