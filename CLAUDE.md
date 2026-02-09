@@ -9,17 +9,17 @@ An MCP (Model Context Protocol) server that exposes Bitbucket Data Center REST A
 ## Essential Commands
 
 ```bash
-npm run build          # Compile TypeScript → build/ (required before running)
-npm run typecheck      # Type-check without emitting
-npm run lint           # ESLint
-npm run lint:fix       # ESLint with auto-fix
-npm test               # Run all tests (Node.js native test runner)
-npm run test:watch     # Tests in watch mode
+pnpm run build          # Compile TypeScript → build/ (required before running)
+pnpm run typecheck      # Type-check without emitting
+pnpm run lint           # ESLint
+pnpm run lint:fix       # ESLint with auto-fix
+pnpm test               # Run all tests (Node.js native test runner)
+pnpm run test:watch     # Tests in watch mode
 node --test tests/echo.test.ts  # Run a single test file
-npm run inspect        # Build + launch MCP Inspector (stdio)
-npm run inspect:http   # MCP Inspector against HTTP endpoint
-npm run dev            # Build + interactive JSON-RPC REPL
-npm run knip           # Find unused exports/dependencies
+pnpm run inspect        # Build + launch MCP Inspector (stdio)
+pnpm run inspect:http   # MCP Inspector against HTTP endpoint
+pnpm run dev            # Build + interactive JSON-RPC REPL
+pnpm run knip           # Find unused exports/dependencies
 ```
 
 ## Environment Variables
@@ -95,15 +95,15 @@ Destructive operations check `getConfig().enableDangerous` before executing.
 - Uses Node.js native test runner (`node:test` + `node:assert`)
 - `tests/helpers/test-client.ts` provides `TestClient` class that spawns the built server as a child process via stdio transport
 - Existing tests are from the starter template and need updating for Bitbucket DC tools
-- Tests require `npm run build` first (they run the compiled JS)
+- Tests require `pnpm run build` first (they run the compiled JS)
 
 ## Adding a New Tool
 
 1. Create `src/tools/my-domain.ts` (or add to an existing domain file)
 2. Export default a `RegisterableModule` with `type: "tool"`
 3. Register one or more tools inside the `register()` function using Zod schemas for params
-4. Build and test: `npm run build && npm run inspect`
-5. Or use the generator: `npm run gen:tool`
+4. Build and test: `pnpm run build && pnpm run inspect`
+5. Or use the generator: `pnpm run gen:tool`
 
 ## Key Conventions
 

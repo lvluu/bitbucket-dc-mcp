@@ -1,0 +1,136 @@
+# Bitbucket DC MCP Server — Setup Instructions
+
+You are helping a user set up the **bitbucket-dc-mcp** MCP server. The server is already installed locally on their machine. Your job is to collect the required information and output the correct configuration.
+
+## Step 1 — Gather information
+
+Ask the user the following questions (skip any they've already answered):
+
+1. **Bitbucket URL** — What is your Bitbucket Data Center base URL? (e.g. `https://bitbucket.yourcompany.com`)
+2. **Authentication method** — Do you want to use a **Personal Access Token** (recommended) or **Username + Password**?
+   - If token: ask for the token value.
+   - If basic auth: ask for username and password.
+3. **Default project** *(optional)* — Do you have a default project key you'd like pre-filled? (e.g. `MYPROJ`)
+4. **Client** — Which client are you configuring?
+   - **VS Code / GitHub Copilot** (workspace `.vscode/mcp.json`)
+   - **VS Code settings.json** (user-level `settings.json`)
+   - **Claude Code** (`.mcp.json` or CLI command)
+   - **Claude Desktop** (`claude_desktop_config.json`)
+   - **Other / manual** (environment variables only)
+
+## Step 2 — Build the configuration
+
+Use the answers to produce the correct config block. The server is installed locally, so use `node` as the command pointing to the local build output.
+
+### Local server command
+
+```
+node <absolute-path-to-repo>/build/index.js
+```
+
+The required environment variables are:
+
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `BITBUCKET_URL` | Yes | Base URL, e.g. `https://bitbucket.yourcompany.com` |
+| `BITBUCKET_TOKEN` | Yes* | Personal access token (Bearer auth) |
+| `BITBUCKET_USERNAME` | Yes* | For basic auth |
+| `BITBUCKET_PASSWORD` | Yes* | For basic auth |
+| `BITBUCKET_DEFAULT_PROJECT` | No | Default project key |
+| `MCP_TRANSPORT` | Yes | Must be `stdio` for client integrations |
+
+\* Either `BITBUCKET_TOKEN` **or** both `BITBUCKET_USERNAME` + `BITBUCKET_PASSWORD`.
+
+### VS Code / GitHub Copilot — `.vscode/mcp.json`
+
+```json
+{
+  "servers": {
+    "bitbucket-dc-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["{{REPO_PATH}}/build/index.js"],
+      "env": {
+        "BITBUCKET_URL": "{{BITBUCKET_URL}}",
+        "BITBUCKET_TOKEN": "{{TOKEN}}",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
+```
+
+### VS Code — `settings.json`
+
+```jsonc
+{
+  "mcp": {
+    "servers": {
+      "bitbucket-dc-mcp": {
+        "type": "stdio",
+        "command": "node",
+        "args": ["{{REPO_PATH}}/build/index.js"],
+        "env": {
+          "BITBUCKET_URL": "{{BITBUCKET_URL}}",
+          "BITBUCKET_TOKEN": "{{TOKEN}}",
+          "MCP_TRANSPORT": "stdio"
+        }
+      }
+    }
+  }
+}
+```
+
+### Claude Code — CLI
+
+```bash
+claude mcp add bitbucket-dc-mcp \
+  -e BITBUCKET_URL={{BITBUCKET_URL}} \
+  -e BITBUCKET_TOKEN={{TOKEN}} \
+  -e MCP_TRANSPORT=stdio \
+  -- node {{REPO_PATH}}/build/index.js
+```
+
+### Claude Code — `.mcp.json`
+
+```json
+{
+  "mcpServers": {
+    "bitbucket-dc-mcp": {
+      "command": "node",
+      "args": ["{{REPO_PATH}}/build/index.js"],
+      "env": {
+        "BITBUCKET_URL": "{{BITBUCKET_URL}}",
+        "BITBUCKET_TOKEN": "{{TOKEN}}",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
+```
+
+### Claude Desktop — `claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "bitbucket-dc-mcp": {
+      "command": "node",
+      "args": ["{{REPO_PATH}}/build/index.js"],
+      "env": {
+        "BITBUCKET_URL": "{{BITBUCKET_URL}}",
+        "BITBUCKET_TOKEN": "{{TOKEN}}",
+        "MCP_TRANSPORT": "stdio"
+      }
+    }
+  }
+}
+```
+
+## Step 3 — Output
+
+1. Replace all `{{...}}` placeholders with the user's actual values.
+2. If the user chose basic auth, replace the `BITBUCKET_TOKEN` entry with `BITBUCKET_USERNAME` and `BITBUCKET_PASSWORD`.
+3. If the user provided a default project, add `"BITBUCKET_DEFAULT_PROJECT": "{{PROJECT_KEY}}"` to the `env` block.
+4. Print the final configuration block ready to copy-paste.
+5. Remind the user to run `pnpm run build` in the repo before first use (the server runs from the compiled `build/` output).
