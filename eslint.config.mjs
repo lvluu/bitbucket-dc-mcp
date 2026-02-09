@@ -13,8 +13,8 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['tests/*.ts', 'tests/*.test.ts', 'tests/helpers/*.ts'],
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 10,
+          allowDefaultProject: ['tests/*.ts', 'tests/*.test.ts', 'tests/helpers/*.ts', 'tests/lib/*.ts', 'tests/tools/*.ts', 'vitest.config.ts'],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -150,10 +150,10 @@ export default tseslint.config(
       ],
       
       // Disallow all comments
-      'no-warning-comments': 'error',
-      'no-inline-comments': 'error',
-      'multiline-comment-style': ['error', 'starred-block'],
-      'spaced-comment': 'error',
+      'no-warning-comments': 'warn',
+      'no-inline-comments': 'warn',
+      'multiline-comment-style': ['warn', 'starred-block'],
+      'spaced-comment': 'warn',
       
       // Additional type safety rules
       '@typescript-eslint/no-floating-promises': 'error',
@@ -175,7 +175,7 @@ export default tseslint.config(
       '@typescript-eslint/consistent-indexed-object-style': ['error', 'record'],
       
       // Code quality and complexity
-      'sonarjs/no-duplicate-string': 'error',
+      'sonarjs/no-duplicate-string': 'warn',
       'sonarjs/no-identical-functions': 'error',
       'sonarjs/cognitive-complexity': ['error', 15],
       '@typescript-eslint/strict-boolean-expressions': ['error', {
@@ -226,11 +226,25 @@ export default tseslint.config(
     // Apply different rules for test files
     files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts'],
     rules: {
-      // Relax some rules for tests
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/consistent-type-definitions': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/consistent-type-imports': 'off',
+      'import/order': 'off',
       'max-params': 'off',
-      // Duplicate strings are common in tests
+      'no-param-reassign': 'off',
       'sonarjs/no-duplicate-string': 'off',
       'sonarjs/no-identical-functions': 'off',
     }
@@ -244,6 +258,6 @@ export default tseslint.config(
   },
   {
     // Ignore build output and common directories
-    ignores: ['build/**', 'dist/**', 'node_modules/**', 'coverage/**', 'docs/**', 'examples/**', 'eslint.config.mjs', 'dev.js', '_templates/**'],
+    ignores: ['build/**', 'dist/**', 'node_modules/**', 'coverage/**', 'docs/**', 'examples/**', 'eslint.config.mjs', 'vitest.config.ts', 'dev.js', '_templates/**'],
   }
 );

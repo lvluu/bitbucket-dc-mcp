@@ -29,9 +29,6 @@ export async function boot(
   const server = new McpServer({
     name: "bitbucket-dc-mcp",
     version: "1.0.0",
-    // capabilities: {
-    //   tools: {},
-    // },
     description: "MCP server exposing Bitbucket Data Center operations as tools",
   });
 

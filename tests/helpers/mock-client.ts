@@ -25,7 +25,7 @@ export function axiosResponse(data: unknown) {
  * Wraps values in a Bitbucket DC paginated response shape.
  */
 export function paginatedResponse(
-  values: unknown[],
+  values: Array<unknown>,
   opts: { isLastPage?: boolean; nextPageStart?: number; start?: number; limit?: number } = {}
 ) {
   return axiosResponse({

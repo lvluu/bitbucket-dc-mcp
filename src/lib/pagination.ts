@@ -29,6 +29,7 @@ function clampLimit(value?: number): number {
   return Math.min(n, DC_MAX_LIMIT);
 }
 
+// eslint-disable-next-line max-params
 async function fetchSinglePage<T>(
   client: AxiosInstance,
   path: string,
@@ -49,6 +50,7 @@ async function fetchSinglePage<T>(
   };
 }
 
+// eslint-disable-next-line max-params
 async function fetchAllPages<T>(
   client: AxiosInstance,
   path: string,

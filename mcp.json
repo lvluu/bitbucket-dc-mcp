@@ -1,15 +1,14 @@
 {
   "servers": {
-    "starter-stdio": {
+    "bitbucket-dc-mcp": {
       "type": "stdio",
-      "command": "node",
-      "args": [
-        "./build/index.js"
-      ]
-    },
-    "starter-http": {
-      "type": "http",
-      "url": "http://localhost:3000/mcp"
+      "command": "npx",
+      "args": ["-y", "bitbucket-dc-mcp"],
+      "env": {
+        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_TOKEN": "your-token",
+        "MCP_TRANSPORT": "stdio"
+      }
     }
   }
 }

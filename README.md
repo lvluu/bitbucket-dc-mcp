@@ -29,13 +29,24 @@ graph LR
 
 ## Quick Start
 
-### 1. Install dependencies
+### Using npx (no install required)
+
+```bash
+BITBUCKET_URL=https://bitbucket.yourcompany.com \
+BITBUCKET_TOKEN=your-token \
+MCP_TRANSPORT=stdio \
+npx bitbucket-dc-mcp
+```
+
+### From source
+
+#### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-### 2. Configure environment
+#### 2. Configure environment
 
 Create a `.env` file (or export variables in your shell):
 
@@ -56,7 +67,7 @@ MCP_TRANSPORT=http
 PORT=3000
 ```
 
-### 3. Build and run
+#### 3. Build and run
 
 ```bash
 npm run build
@@ -141,26 +152,73 @@ npm run serve:stdio
 
 ## Client Integration
 
-### VS Code
+### VS Code / GitHub Copilot
 
-The project includes an `mcp.json` for VS Code MCP extensions:
+Add to your **VS Code settings** (`settings.json`) or workspace `.vscode/mcp.json`:
 
 ```json
 {
   "servers": {
-    "bitbucket-dc-stdio": {
+    "bitbucket-dc-mcp": {
       "type": "stdio",
-      "command": "node",
-      "args": ["./build/index.js"],
+      "command": "npx",
+      "args": ["-y", "bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
         "BITBUCKET_TOKEN": "your-token",
         "MCP_TRANSPORT": "stdio"
       }
-    },
-    "bitbucket-dc-http": {
-      "type": "http",
-      "url": "http://localhost:3000/mcp"
+    }
+  }
+}
+```
+
+If using `settings.json` directly, nest it under `"mcp"`:
+
+```jsonc
+{
+  "mcp": {
+    "servers": {
+      "bitbucket-dc-mcp": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "bitbucket-dc-mcp"],
+        "env": {
+          "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+          "BITBUCKET_TOKEN": "your-token",
+          "MCP_TRANSPORT": "stdio"
+        }
+      }
+    }
+  }
+}
+```
+
+### Claude Code
+
+Add to your project's `.mcp.json`, or configure via the CLI:
+
+```bash
+claude mcp add bitbucket-dc-mcp \
+  -e BITBUCKET_URL=https://bitbucket.yourcompany.com \
+  -e BITBUCKET_TOKEN=your-token \
+  -e MCP_TRANSPORT=stdio \
+  -- npx -y bitbucket-dc-mcp
+```
+
+Or manually create/edit `.mcp.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "bitbucket-dc-mcp": {
+      "command": "npx",
+      "args": ["-y", "bitbucket-dc-mcp"],
+      "env": {
+        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_TOKEN": "your-token",
+        "MCP_TRANSPORT": "stdio"
+      }
     }
   }
 }
@@ -173,9 +231,9 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "bitbucket-dc": {
-      "command": "node",
-      "args": ["/absolute/path/to/build/index.js"],
+    "bitbucket-dc-mcp": {
+      "command": "npx",
+      "args": ["-y", "bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
         "BITBUCKET_TOKEN": "your-token",
@@ -186,9 +244,6 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
 }
 ```
 
-> [!CAUTION]
-> Always use absolute paths in Claude Desktop configuration.
-
 ### Custom Clients
 
 ```typescript
@@ -196,8 +251,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const transport = new StdioClientTransport({
-  command: "node",
-  args: ["/path/to/build/index.js"],
+  command: "npx",
+  args: ["-y", "bitbucket-dc-mcp"],
   env: {
     BITBUCKET_URL: "https://bitbucket.yourcompany.com",
     BITBUCKET_TOKEN: "your-token",
