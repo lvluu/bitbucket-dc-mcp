@@ -1,11 +1,11 @@
 ---
-allowed-tools: Bash(pnpm run build:*)
+allowed-tools: Bash(npm run build:*)
 description: Run TypeScript type checking
 ---
 
 Run TypeScript type checking to ensure all types are correct:
 
-!`pnpm run build`
+!`npm run build`
 
 Automatically fix all type errors:
 - Analyze the TypeScript compiler output

@@ -2,19 +2,40 @@
 
 You are helping a user set up the **bitbucket-dc-mcp** MCP server. Your job is to walk them through installing it globally from source, then collect their credentials and output the correct client configuration.
 
-## Step 1 — Install globally from source
-
-Run these commands from the repo root:
+## Step 1 — Clone & Install
 
 ```bash
-pnpm install
-pnpm run build
-pnpm link --global
+git clone ssh://git@bitbucket.mgm-tp.com:7999/~lvluu/bitbucket-mcp.git
+cd bitbucket-mcp
+# ci for clean install, then build
+npm ci
+```
+
+## Step 2 — Build
+
+```bash
+npm run build
+```
+
+## Step 3 — Install globally via symlink
+
+```bash
+npm link
+```
+
+## Step 4 — Verify executable works
+
+```bash
+# Should print the path to the symlinked binary
+which bitbucket-mcp
+
+# Should fail with "BITBUCKET_TOKEN or USERNAME/PASSWORD is required" — that's correct
+bitbucket-mcp 2>&1 || true
 ```
 
 After this, `bitbucket-dc-mcp` is available as a global command.
 
-## Step 2 — Gather information
+## Step 5 — Gather information
 
 Ask the user the following questions (skip any they've already answered):
 
@@ -30,7 +51,7 @@ Ask the user the following questions (skip any they've already answered):
    - **Claude Desktop** (`claude_desktop_config.json`)
    - **Other / manual** (environment variables only)
 
-## Step 3 — Build the configuration
+## Step 6 — Build the configuration
 
 Use the answers to produce the correct config block. Since the tool is installed globally, use `bitbucket-dc-mcp` as the command directly (no `node`, no `npx`).
 
@@ -129,7 +150,7 @@ claude mcp add bitbucket-dc-mcp \
 }
 ```
 
-## Step 4 — Output
+## Step 7 — Output
 
 1. Replace all `{{...}}` placeholders with the user's actual values.
 2. If the user chose basic auth, replace the `BITBUCKET_TOKEN` entry with `BITBUCKET_USERNAME` and `BITBUCKET_PASSWORD`.

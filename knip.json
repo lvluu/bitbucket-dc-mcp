@@ -1,10 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
-    "src/index.ts",
-    "src/tools/*.ts",
-    "src/resources/*.ts",
-    "src/prompts/*.ts"
+    "src/tools/*.ts"
   ],
   "project": [
     "src/**/*.ts",
@@ -16,7 +13,8 @@
     "docs/**",
     "_templates/**",
     "tests/helpers/index.ts",
-    "tests/helpers/port-utils.ts"
+    "tests/helpers/port-utils.ts",
+    "tests/helpers/test-client.ts"
   ],
   "ignoreDependencies": [
     "@typescript-eslint/parser"
@@ -26,6 +24,5 @@
     "config": "tsconfig.json"
   },
   "jest": false,
-  "mocha": false,
-  "vitest": false
+  "mocha": false
 }
