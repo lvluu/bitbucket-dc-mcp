@@ -119,10 +119,13 @@ describe("pull-requests tools", () => {
   });
 
   describe("updatePullRequest", () => {
-    it("should fetch current version then PUT", async () => {
-      // First call: get current PR for version
-      mockAxios.get.mockResolvedValueOnce(axiosResponse({ id: 1, version: 5, title: "Old" }));
-      // Second call: put update
+    it("should fetch current version then PUT preserving all fields", async () => {
+      const currentPR = {
+        id: 1, version: 5, title: "Old", description: "desc",
+        toRef: { id: "refs/heads/main" },
+        reviewers: [{ user: { name: "alice" } }],
+      };
+      mockAxios.get.mockResolvedValueOnce(axiosResponse(currentPR));
       mockAxios.put.mockResolvedValueOnce(axiosResponse({ id: 1, version: 6, title: "New Title" }));
 
       const handler = toolHandlers.get("updatePullRequest")!;
@@ -133,7 +136,13 @@ describe("pull-requests tools", () => {
       expect(mockAxios.get).toHaveBeenCalledWith("/projects/PROJ/repos/repo/pull-requests/1");
       expect(mockAxios.put).toHaveBeenCalledWith(
         "/projects/PROJ/repos/repo/pull-requests/1",
-        { version: 5, title: "New Title" }
+        {
+          title: "New Title",
+          description: "desc",
+          version: 5,
+          toRef: { id: "refs/heads/main" },
+          reviewers: [{ user: { name: "alice" } }],
+        }
       );
     });
   });
@@ -214,8 +223,13 @@ describe("pull-requests tools", () => {
   });
 
   describe("markPullRequestAsDraft", () => {
-    it("should fetch current PR then PUT with draft true", async () => {
-      mockAxios.get.mockResolvedValueOnce(axiosResponse({ id: 1, version: 3, title: "My PR", draft: false }));
+    it("should fetch current PR then PUT with draft true, preserving all fields", async () => {
+      const currentPR = {
+        id: 1, version: 3, title: "My PR", description: "desc", draft: false,
+        toRef: { id: "refs/heads/main" },
+        reviewers: [{ user: { name: "denise" } }],
+      };
+      mockAxios.get.mockResolvedValueOnce(axiosResponse(currentPR));
       mockAxios.put.mockResolvedValueOnce(axiosResponse({ id: 1, version: 4, title: "My PR", draft: true }));
 
       const handler = toolHandlers.get("markPullRequestAsDraft")!;
@@ -224,14 +238,26 @@ describe("pull-requests tools", () => {
       expect(mockAxios.get).toHaveBeenCalledWith("/projects/PROJ/repos/repo/pull-requests/1");
       expect(mockAxios.put).toHaveBeenCalledWith(
         "/projects/PROJ/repos/repo/pull-requests/1",
-        { title: "My PR", version: 3, draft: true }
+        {
+          title: "My PR",
+          description: "desc",
+          version: 3,
+          toRef: { id: "refs/heads/main" },
+          reviewers: [{ user: { name: "denise" } }],
+          draft: true,
+        }
       );
       const parsed = JSON.parse(result.content[0].text);
       expect(parsed.draft).toBe(true);
     });
 
-    it("should remove draft status with draft false", async () => {
-      mockAxios.get.mockResolvedValueOnce(axiosResponse({ id: 1, version: 4, title: "My PR", draft: true }));
+    it("should remove draft status with draft false, preserving reviewers", async () => {
+      const currentPR = {
+        id: 1, version: 4, title: "My PR", description: "desc", draft: true,
+        toRef: { id: "refs/heads/main" },
+        reviewers: [{ user: { name: "denise" } }, { user: { name: "alice" } }],
+      };
+      mockAxios.get.mockResolvedValueOnce(axiosResponse(currentPR));
       mockAxios.put.mockResolvedValueOnce(axiosResponse({ id: 1, version: 5, title: "My PR", draft: false }));
 
       const handler = toolHandlers.get("markPullRequestAsDraft")!;
@@ -239,7 +265,14 @@ describe("pull-requests tools", () => {
 
       expect(mockAxios.put).toHaveBeenCalledWith(
         "/projects/PROJ/repos/repo/pull-requests/1",
-        { title: "My PR", version: 4, draft: false }
+        {
+          title: "My PR",
+          description: "desc",
+          version: 4,
+          toRef: { id: "refs/heads/main" },
+          reviewers: [{ user: { name: "denise" } }, { user: { name: "alice" } }],
+          draft: false,
+        }
       );
       const parsed = JSON.parse(result.content[0].text);
       expect(parsed.draft).toBe(false);
