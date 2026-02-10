@@ -17,10 +17,11 @@ const pullRequestsModule: RegisterableModule = {
   name: "pull-requests",
   description: "Bitbucket DC pull request operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listPullRequests",
-      "List pull requests for a repository",
       {
+        description: "List pull requests for a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         state: z.enum(["OPEN", "MERGED", "DECLINED", "ALL"]).optional().describe("PR state filter"),
@@ -29,6 +30,7 @@ const pullRequestsModule: RegisterableModule = {
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -50,13 +52,15 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getPullRequest",
-      "Get details of a specific pull request",
       {
+        description: "Get details of a specific pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {
@@ -69,10 +73,11 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "createPullRequest",
-      "Create a new pull request",
       {
+        description: "Create a new pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         title: z.string().describe("PR title"),
@@ -81,6 +86,7 @@ const pullRequestsModule: RegisterableModule = {
         targetBranch: z.string().describe("Target branch name"),
         reviewers: z.array(z.string()).optional().describe("Reviewer usernames"),
         draft: z.boolean().optional().describe("Create as draft PR"),
+      },
       },
       async (args) => {
         try {
@@ -122,15 +128,17 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "updatePullRequest",
-      "Update a pull request (title, description, reviewers, target branch)",
       {
+        description: "Update a pull request (title, description, reviewers, target branch)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         title: z.string().optional().describe("New title"),
         description: z.string().optional().describe("New description"),
+      },
       },
       async (args) => {
         try {
@@ -155,15 +163,17 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "mergePullRequest",
-      "Merge a pull request",
       {
+        description: "Merge a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         message: z.string().optional().describe("Merge commit message"),
         strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional().describe("Merge strategy"),
+      },
       },
       async (args) => {
         try {
@@ -189,14 +199,16 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "declinePullRequest",
-      "Decline a pull request",
       {
+        description: "Decline a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         message: z.string().optional().describe("Reason for declining"),
+      },
       },
       async (args) => {
         try {
@@ -214,13 +226,15 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "reopenPullRequest",
-      "Reopen a declined pull request",
       {
+        description: "Reopen a declined pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {
@@ -237,13 +251,15 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "approvePullRequest",
-      "Approve a pull request",
       {
+        description: "Approve a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {
@@ -256,13 +272,15 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "unapprovePullRequest",
-      "Remove approval from a pull request",
       {
+        description: "Remove approval from a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {
@@ -275,14 +293,16 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "markPullRequestAsDraft",
-      "Mark a pull request as draft or remove draft status",
       {
+        description: "Mark a pull request as draft or remove draft status",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         draft: z.boolean().describe("true to mark as draft, false to remove draft status"),
+      },
       },
       async (args) => {
         try {
@@ -304,13 +324,15 @@ const pullRequestsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "canMergePullRequest",
-      "Check if a pull request can be merged",
       {
+        description: "Check if a pull request can be merged",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {

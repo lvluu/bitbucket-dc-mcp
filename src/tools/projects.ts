@@ -10,14 +10,16 @@ const projectsModule: RegisterableModule = {
   name: "projects",
   description: "Bitbucket DC project operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listProjects",
-      "List Bitbucket Data Center projects",
       {
+        description: "List Bitbucket Data Center projects",
+        inputSchema: {
         name: z.string().optional().describe("Filter projects by name (partial match)"),
         limit: z.number().optional().describe("Number of items per page (default 25, max 100)"),
         start: z.number().optional().describe("Start index for pagination"),
         all: z.boolean().optional().describe("Fetch all pages (up to 1000 items)"),
+      },
       },
       async (args) => {
         try {
@@ -37,11 +39,13 @@ const projectsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getProject",
-      "Get details of a specific Bitbucket DC project",
       {
+        description: "Get details of a specific Bitbucket DC project",
+        inputSchema: {
         projectKey: z.string().describe("The project key (e.g. PROJ)"),
+      },
       },
       async (args) => {
         try {
@@ -54,13 +58,15 @@ const projectsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "createProject",
-      "Create a new Bitbucket DC project",
       {
+        description: "Create a new Bitbucket DC project",
+        inputSchema: {
         key: z.string().describe("Project key (e.g. PROJ)"),
         name: z.string().describe("Project name"),
         description: z.string().optional().describe("Project description"),
+      },
       },
       async (args) => {
         try {
@@ -77,13 +83,15 @@ const projectsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "updateProject",
-      "Update an existing Bitbucket DC project",
       {
+        description: "Update an existing Bitbucket DC project",
+        inputSchema: {
         projectKey: z.string().describe("The project key"),
         name: z.string().optional().describe("New project name"),
         description: z.string().optional().describe("New project description"),
+      },
       },
       async (args) => {
         try {

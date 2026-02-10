@@ -14,15 +14,17 @@ const repositoriesModule: RegisterableModule = {
   name: "repositories",
   description: "Bitbucket DC repository operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listRepositories",
-      "List repositories in a Bitbucket DC project",
       {
+        description: "List repositories in a Bitbucket DC project",
+        inputSchema: {
         projectKey: z.string().optional().describe("Project key (uses BITBUCKET_DEFAULT_PROJECT if not set)"),
         name: z.string().optional().describe("Filter repositories by name (partial match)"),
         limit: z.number().optional().describe("Number of items per page (default 25, max 100)"),
         start: z.number().optional().describe("Start index for pagination"),
         all: z.boolean().optional().describe("Fetch all pages (up to 1000 items)"),
+      },
       },
       async (args) => {
         try {
@@ -47,12 +49,14 @@ const repositoriesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getRepository",
-      "Get details of a specific repository",
       {
+        description: "Get details of a specific repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
+      },
       },
       async (args) => {
         try {
@@ -65,15 +69,17 @@ const repositoriesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "createRepository",
-      "Create a new repository in a project",
       {
+        description: "Create a new repository in a project",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         name: z.string().describe("Repository name"),
         scmId: z.string().optional().default("git").describe("SCM type (default: git)"),
         forkable: z.boolean().optional().describe("Whether the repo is forkable"),
         defaultBranch: z.string().optional().describe("Default branch name"),
+      },
       },
       async (args) => {
         try {
@@ -91,14 +97,16 @@ const repositoriesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "forkRepository",
-      "Fork a repository",
       {
+        description: "Fork a repository",
+        inputSchema: {
         projectKey: z.string().describe("Source project key"),
         repoSlug: z.string().describe("Source repository slug"),
         targetProjectKey: z.string().optional().describe("Target project key for the fork"),
         name: z.string().optional().describe("Name for the forked repository"),
+      },
       },
       async (args) => {
         try {
@@ -114,12 +122,14 @@ const repositoriesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getDefaultBranch",
-      "Get the default branch of a repository",
       {
+        description: "Get the default branch of a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
+      },
       },
       async (args) => {
         try {
@@ -132,13 +142,15 @@ const repositoriesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "setDefaultBranch",
-      "Set the default branch of a repository",
       {
+        description: "Set the default branch of a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         branchId: z.string().describe("Branch ID (e.g. refs/heads/main)"),
+      },
       },
       async (args) => {
         try {

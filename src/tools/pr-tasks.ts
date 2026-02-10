@@ -17,16 +17,18 @@ const prTasksModule: RegisterableModule = {
   name: "pr-tasks",
   description: "Bitbucket DC pull request task operations (blocker comments)",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listPRTasks",
-      "List tasks (blocker comments) on a pull request",
       {
+        description: "List tasks (blocker comments) on a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().default(true).describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -51,10 +53,11 @@ const prTasksModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "addBlockerComment",
-      "Add a blocker comment (task) to a pull request",
       {
+        description: "Add a blocker comment (task) to a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
@@ -62,6 +65,7 @@ const prTasksModule: RegisterableModule = {
         anchorPath: z.string().optional().describe("File path for inline task"),
         anchorLine: z.number().optional().describe("Line number"),
         anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM=old, TO=new file"),
+      },
       },
       async (args) => {
         try {
@@ -90,15 +94,17 @@ const prTasksModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "resolveTask",
-      "Resolve a task (blocker comment) by setting its state to RESOLVED",
       {
+        description: "Resolve a task (blocker comment) by setting its state to RESOLVED",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment/task ID"),
         version: z.number().describe("Comment version for optimistic locking"),
+      },
       },
       async (args) => {
         try {
@@ -114,15 +120,17 @@ const prTasksModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "reopenTask",
-      "Reopen a resolved task (blocker comment) by setting its state back to OPEN",
       {
+        description: "Reopen a resolved task (blocker comment) by setting its state back to OPEN",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment/task ID"),
         version: z.number().describe("Comment version for optimistic locking"),
+      },
       },
       async (args) => {
         try {

@@ -17,10 +17,11 @@ const branchesModule: RegisterableModule = {
   name: "branches",
   description: "Bitbucket DC branch and tag operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listBranches",
-      "List branches in a repository",
       {
+        description: "List branches in a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         filterText: z.string().optional().describe("Filter branches by name"),
@@ -28,6 +29,7 @@ const branchesModule: RegisterableModule = {
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -47,14 +49,16 @@ const branchesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "createBranch",
-      "Create a new branch in a repository",
       {
+        description: "Create a new branch in a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         name: z.string().describe("Branch name"),
         startPoint: z.string().describe("Start point (commit hash or branch name)"),
+      },
       },
       async (args) => {
         try {
@@ -70,14 +74,16 @@ const branchesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "deleteBranch",
-      "Delete a branch (requires BITBUCKET_ENABLE_DANGEROUS=true)",
       {
+        description: "Delete a branch (requires BITBUCKET_ENABLE_DANGEROUS=true)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         name: z.string().describe("Branch name to delete"),
         dryRun: z.boolean().optional().describe("If true, only check if delete is possible"),
+      },
       },
       async (args) => {
         try {
@@ -99,10 +105,11 @@ const branchesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "listTags",
-      "List tags in a repository",
       {
+        description: "List tags in a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         filterText: z.string().optional().describe("Filter tags by name"),
@@ -110,6 +117,7 @@ const branchesModule: RegisterableModule = {
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -129,15 +137,17 @@ const branchesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "createTag",
-      "Create a tag in a repository",
       {
+        description: "Create a tag in a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         name: z.string().describe("Tag name"),
         startPoint: z.string().describe("Commit hash to tag"),
         message: z.string().optional().describe("Tag message (for annotated tags)"),
+      },
       },
       async (args) => {
         try {

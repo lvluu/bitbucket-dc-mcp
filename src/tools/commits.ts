@@ -18,10 +18,11 @@ const commitsModule: RegisterableModule = {
   name: "commits",
   description: "Bitbucket DC commit operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listCommits",
-      "List commits in a repository",
       {
+        description: "List commits in a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         until: z.string().optional().describe("Commit hash or ref to list commits until"),
@@ -30,6 +31,7 @@ const commitsModule: RegisterableModule = {
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -50,13 +52,15 @@ const commitsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getCommit",
-      "Get details of a specific commit",
       {
+        description: "Get details of a specific commit",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         commitId: z.string().describe(DESC_COMMIT_HASH),
+      },
       },
       async (args) => {
         try {
@@ -71,16 +75,18 @@ const commitsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getCommitChanges",
-      "Get list of files changed in a commit",
       {
+        description: "Get list of files changed in a commit",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         commitId: z.string().describe(DESC_COMMIT_HASH),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -97,14 +103,16 @@ const commitsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getCommitDiff",
-      "Get the diff for a specific commit",
       {
+        description: "Get the diff for a specific commit",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         commitId: z.string().describe(DESC_COMMIT_HASH),
         contextLines: z.number().optional().describe("Number of context lines"),
+      },
       },
       async (args) => {
         try {

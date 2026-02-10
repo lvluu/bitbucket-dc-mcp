@@ -17,16 +17,18 @@ const prCommentsModule: RegisterableModule = {
   name: "pr-comments",
   description: "Bitbucket DC pull request comment operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "listPRComments",
-      "List comments on a pull request (fetched from activities, filtered to comments)",
       {
+        description: "List comments on a pull request (fetched from activities, filtered to comments)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -46,10 +48,11 @@ const prCommentsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "addPRComment",
-      "Add a comment to a pull request (general or inline)",
       {
+        description: "Add a comment to a pull request (general or inline)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
@@ -60,6 +63,7 @@ const prCommentsModule: RegisterableModule = {
         anchorLineType: z.enum(["ADDED", "REMOVED", "CONTEXT"]).optional().describe("Line type for inline comment"),
         anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM = old file, TO = new file"),
         severity: z.enum(["NORMAL", "BLOCKER"]).optional().describe("Comment severity (BLOCKER = task)"),
+      },
       },
       async (args) => {
         try {
@@ -92,14 +96,16 @@ const prCommentsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getPRComment",
-      "Get a specific pull request comment by ID",
       {
+        description: "Get a specific pull request comment by ID",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment ID"),
+      },
       },
       async (args) => {
         try {
@@ -114,16 +120,18 @@ const prCommentsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "updatePRComment",
-      "Update a pull request comment",
       {
+        description: "Update a pull request comment",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment ID"),
         text: z.string().describe("Updated comment text"),
         version: z.number().describe("Comment version for optimistic locking"),
+      },
       },
       async (args) => {
         try {
@@ -139,15 +147,17 @@ const prCommentsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "resolvePRComment",
-      "Resolve a pull request comment thread (sets threadResolved to true)",
       {
+        description: "Resolve a pull request comment thread (sets threadResolved to true)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
         version: z.number().describe("Comment version for optimistic locking"),
+      },
       },
       async (args) => {
         try {
@@ -163,15 +173,17 @@ const prCommentsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "reopenPRComment",
-      "Reopen a resolved pull request comment thread (sets threadResolved to false)",
       {
+        description: "Reopen a resolved pull request comment thread (sets threadResolved to false)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
         version: z.number().describe("Comment version for optimistic locking"),
+      },
       },
       async (args) => {
         try {
@@ -187,15 +199,17 @@ const prCommentsModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "deletePRComment",
-      "Delete a pull request comment (requires BITBUCKET_ENABLE_DANGEROUS=true)",
       {
+        description: "Delete a pull request comment (requires BITBUCKET_ENABLE_DANGEROUS=true)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         commentId: z.number().describe("Comment ID"),
         version: z.number().describe("Comment version for optimistic locking"),
+      },
       },
       async (args) => {
         try {

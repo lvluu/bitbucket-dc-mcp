@@ -18,16 +18,18 @@ const filesModule: RegisterableModule = {
   name: "files",
   description: "Bitbucket DC file browsing and content operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "browseFiles",
-      "Browse files and directories in a repository",
       {
+        description: "Browse files and directories in a repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         path: z.string().optional().default("").describe("Path within the repository"),
         at: z.string().optional().describe("Branch, tag, or commit hash (defaults to default branch)"),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
+      },
       },
       async (args) => {
         try {
@@ -46,14 +48,16 @@ const filesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getFileContent",
-      "Get raw content of a file",
       {
+        description: "Get raw content of a file",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         path: z.string().describe("File path within the repository"),
         at: z.string().optional().describe(DESC_BRANCH_TAG_COMMIT),
+      },
       },
       async (args) => {
         try {
@@ -71,10 +75,11 @@ const filesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "editFile",
-      "Edit (create or update) a file in the repository",
       {
+        description: "Edit (create or update) a file in the repository",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         path: z.string().describe("File path"),
@@ -82,6 +87,7 @@ const filesModule: RegisterableModule = {
         message: z.string().describe("Commit message"),
         branch: z.string().describe("Branch to commit to"),
         sourceCommitId: z.string().optional().describe("Source commit ID for optimistic locking (required for updates)"),
+      },
       },
       async (args) => {
         try {
@@ -106,16 +112,18 @@ const filesModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "listFiles",
-      "List file paths recursively in a repository (stream files endpoint)",
       {
+        description: "List file paths recursively in a repository (stream files endpoint)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         at: z.string().optional().describe(DESC_BRANCH_TAG_COMMIT),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {

@@ -18,16 +18,18 @@ const prActivityModule: RegisterableModule = {
   name: "pr-activity",
   description: "Bitbucket DC pull request activity and commit operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "getPullRequestActivity",
-      "Get the activity log for a pull request (comments, approvals, merges, etc.)",
       {
+        description: "Get the activity log for a pull request (comments, approvals, merges, etc.)",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe(DESC_PR_ID),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -44,16 +46,18 @@ const prActivityModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getPullRequestCommits",
-      "Get commits in a pull request",
       {
+        description: "Get commits in a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe(DESC_PR_ID),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
@@ -70,13 +74,15 @@ const prActivityModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getPullRequestParticipants",
-      "Get participants (reviewers, author) of a pull request",
       {
+        description: "Get participants (reviewers, author) of a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe(DESC_PR_ID),
+      },
       },
       async (args) => {
         try {

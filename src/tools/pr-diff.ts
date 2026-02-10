@@ -17,15 +17,17 @@ const prDiffModule: RegisterableModule = {
   name: "pr-diff",
   description: "Bitbucket DC pull request diff, patch, and change operations",
   register(server: McpServer) {
-    server.tool(
+    server.registerTool(
       "getPullRequestDiff",
-      "Get the raw diff for a pull request",
       {
+        description: "Get the raw diff for a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         contextLines: z.number().optional().describe("Number of context lines in diff"),
         withComments: z.boolean().optional().describe("Include comments in diff response"),
+      },
       },
       async (args) => {
         try {
@@ -44,13 +46,15 @@ const prDiffModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "streamPullRequestDiff",
-      "Stream the raw unified diff for a pull request as plain text",
       {
+        description: "Stream the raw unified diff for a pull request as plain text",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {
@@ -66,13 +70,15 @@ const prDiffModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getPullRequestPatch",
-      "Get the pull request as a patch file",
       {
+        description: "Get the pull request as a patch file",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
+      },
       },
       async (args) => {
         try {
@@ -88,16 +94,18 @@ const prDiffModule: RegisterableModule = {
       }
     );
 
-    server.tool(
+    server.registerTool(
       "getPullRequestChanges",
-      "Get the list of changed files in a pull request",
       {
+        description: "Get the list of changed files in a pull request",
+        inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.number().describe("Pull request ID"),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+      },
       },
       async (args) => {
         try {
