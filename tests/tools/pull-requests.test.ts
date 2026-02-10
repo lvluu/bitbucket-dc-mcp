@@ -286,4 +286,103 @@ describe("pull-requests tools", () => {
       expect(parsed.canMerge).toBe(true);
     });
   });
+
+  describe("addPullRequestReviewers", () => {
+    it("should POST participants with REVIEWER role for each reviewer", async () => {
+      mockAxios.post
+        .mockResolvedValueOnce(axiosResponse({ user: { name: "alice" }, role: "REVIEWER", approved: false }))
+        .mockResolvedValueOnce(axiosResponse({ user: { name: "bob" }, role: "REVIEWER", approved: false }));
+
+      const handler = toolHandlers.get("addPullRequestReviewers")!;
+      const result = await handler({
+        projectKey: "PROJ",
+        repoSlug: "repo",
+        prId: 5,
+        reviewers: ["alice", "bob"],
+      }) as any;
+
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
+      expect(mockAxios.post).toHaveBeenNthCalledWith(
+        1,
+        "/projects/PROJ/repos/repo/pull-requests/5/participants",
+        { user: { name: "alice" }, role: "REVIEWER" }
+      );
+      expect(mockAxios.post).toHaveBeenNthCalledWith(
+        2,
+        "/projects/PROJ/repos/repo/pull-requests/5/participants",
+        { user: { name: "bob" }, role: "REVIEWER" }
+      );
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(2);
+      expect(parsed.failed).toBe(0);
+      expect(parsed.results).toHaveLength(2);
+      expect(parsed.results[0].username).toBe("alice");
+      expect(parsed.results[1].username).toBe("bob");
+    });
+
+    it("should handle mixed success and failures", async () => {
+      mockAxios.post
+        .mockResolvedValueOnce(axiosResponse({ user: { name: "alice" }, role: "REVIEWER" }))
+        .mockRejectedValueOnce({
+          response: { status: 404, data: { errors: [{ message: "User not found" }] } },
+        });
+
+      const handler = toolHandlers.get("addPullRequestReviewers")!;
+      const result = await handler({
+        projectKey: "PROJ",
+        repoSlug: "repo",
+        prId: 5,
+        reviewers: ["alice", "invalid-user"],
+      }) as any;
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(1);
+      expect(parsed.failed).toBe(1);
+      expect(parsed.results).toHaveLength(1);
+      expect(parsed.errors).toHaveLength(1);
+      expect(parsed.errors[0].username).toBe("invalid-user");
+    });
+
+    it("should skip empty usernames after trimming", async () => {
+      mockAxios.post.mockResolvedValueOnce(axiosResponse({ user: { name: "charlie" }, role: "REVIEWER" }));
+
+      const handler = toolHandlers.get("addPullRequestReviewers")!;
+      const result = await handler({
+        projectKey: "PROJ",
+        repoSlug: "repo",
+        prId: 5,
+        reviewers: ["  charlie  ", "  ", ""],
+      }) as any;
+
+      expect(mockAxios.post).toHaveBeenCalledTimes(1);
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        "/projects/PROJ/repos/repo/pull-requests/5/participants",
+        { user: { name: "charlie" }, role: "REVIEWER" }
+      );
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(1);
+      expect(parsed.results[0].username).toBe("charlie");
+    });
+
+    it("should return error if all reviewers fail", async () => {
+      mockAxios.post.mockRejectedValueOnce({
+        response: { status: 400, data: { errors: [{ message: "Cannot change AUTHOR role" }] } },
+      });
+
+      const handler = toolHandlers.get("addPullRequestReviewers")!;
+      const result = await handler({
+        projectKey: "PROJ",
+        repoSlug: "repo",
+        prId: 5,
+        reviewers: ["author-user"],
+      }) as any;
+
+      expect(result.isError).toBe(true);
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.success).toBe(0);
+      expect(parsed.failed).toBe(1);
+    });
+  });
 });

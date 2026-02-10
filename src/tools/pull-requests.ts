@@ -345,6 +345,63 @@ const pullRequestsModule: RegisterableModule = {
         }
       }
     );
+
+    server.registerTool(
+      "addPullRequestReviewers",
+      {
+        description: "Add reviewers to an existing pull request. Assigns users the REVIEWER role. If a user is already a participant with a different role (except AUTHOR), their role will be updated to REVIEWER.",
+        inputSchema: {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe(DESC_PR_ID),
+        reviewers: z.array(z.string()).min(1).describe("Array of reviewer usernames to add"),
+      },
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const results: Array<{ username: string; success: boolean; data: unknown }> = [];
+          const errors: Array<{ username: string; error: string }> = [];
+
+          // Add each reviewer individually via the participants endpoint
+          for (const username of args.reviewers) {
+            const trimmedUsername = username.trim();
+            if (trimmedUsername.length === 0) continue;
+
+            try {
+              const payload = {
+                user: { name: trimmedUsername },
+                role: "REVIEWER",
+              };
+              const response = await client.post(
+                `${prPath(args.projectKey, args.repoSlug, args.prId)}/participants`,
+                payload
+              );
+              results.push({ username: trimmedUsername, success: true, data: response.data as unknown });
+            } catch (error) {
+              errors.push({ username: trimmedUsername, error: formatError(error) });
+            }
+          }
+
+          // Return combined results
+          const summary = {
+            success: results.length,
+            failed: errors.length,
+            results,
+            errors,
+          };
+
+          if (errors.length > 0 && results.length === 0) {
+            // All failed
+            return { content: [{ type: "text" as const, text: JSON.stringify(summary, null, 2) }], isError: true };
+          }
+
+          return jsonResult(summary);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
   },
 };
 
