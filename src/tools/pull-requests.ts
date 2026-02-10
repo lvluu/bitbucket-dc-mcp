@@ -271,6 +271,32 @@ const pullRequestsModule: RegisterableModule = {
     );
 
     server.tool(
+      "markPullRequestAsDraft",
+      "Mark a pull request as draft or remove draft status",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+        draft: z.boolean().describe("true to mark as draft, false to remove draft status"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const current = await client.get(prPath(args.projectKey, args.repoSlug, args.prId));
+          const currentData = current.data as Record<string, unknown>;
+          const response = await client.put(prPath(args.projectKey, args.repoSlug, args.prId), {
+            title: currentData.title,
+            version: currentData.version,
+            draft: args.draft,
+          });
+          return jsonResult(response.data);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
       "canMergePullRequest",
       "Check if a pull request can be merged",
       {

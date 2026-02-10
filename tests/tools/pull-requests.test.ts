@@ -213,6 +213,39 @@ describe("pull-requests tools", () => {
     });
   });
 
+  describe("markPullRequestAsDraft", () => {
+    it("should fetch current PR then PUT with draft true", async () => {
+      mockAxios.get.mockResolvedValueOnce(axiosResponse({ id: 1, version: 3, title: "My PR", draft: false }));
+      mockAxios.put.mockResolvedValueOnce(axiosResponse({ id: 1, version: 4, title: "My PR", draft: true }));
+
+      const handler = toolHandlers.get("markPullRequestAsDraft")!;
+      const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1, draft: true }) as any;
+
+      expect(mockAxios.get).toHaveBeenCalledWith("/projects/PROJ/repos/repo/pull-requests/1");
+      expect(mockAxios.put).toHaveBeenCalledWith(
+        "/projects/PROJ/repos/repo/pull-requests/1",
+        { title: "My PR", version: 3, draft: true }
+      );
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.draft).toBe(true);
+    });
+
+    it("should remove draft status with draft false", async () => {
+      mockAxios.get.mockResolvedValueOnce(axiosResponse({ id: 1, version: 4, title: "My PR", draft: true }));
+      mockAxios.put.mockResolvedValueOnce(axiosResponse({ id: 1, version: 5, title: "My PR", draft: false }));
+
+      const handler = toolHandlers.get("markPullRequestAsDraft")!;
+      const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1, draft: false }) as any;
+
+      expect(mockAxios.put).toHaveBeenCalledWith(
+        "/projects/PROJ/repos/repo/pull-requests/1",
+        { title: "My PR", version: 4, draft: false }
+      );
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.draft).toBe(false);
+    });
+  });
+
   describe("canMergePullRequest", () => {
     it("should GET merge check", async () => {
       mockAxios.get.mockResolvedValueOnce(axiosResponse({ canMerge: true, vetoes: [] }));

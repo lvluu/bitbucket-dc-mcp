@@ -109,11 +109,11 @@ Use the answers to produce the correct config block. Since the tool is installed
 ### Claude Code — CLI
 
 ```bash
-claude mcp add bitbucket-dc-mcp \
-  -e BITBUCKET_URL={{BITBUCKET_URL}} \
-  -e BITBUCKET_TOKEN={{TOKEN}} \
-  -e MCP_TRANSPORT=stdio \
-  -- bitbucket-dc-mcp
+# User-level (available in all projects)
+claude mcp add bitbucket-dc-mcp -s user -e BITBUCKET_URL={{BITBUCKET_URL}} -e BITBUCKET_TOKEN={{TOKEN}} -e MCP_TRANSPORT=stdio -- bitbucket-dc-mcp
+
+# Project-level (available only in the current project)
+claude mcp add bitbucket-dc-mcp -s project -e BITBUCKET_URL={{BITBUCKET_URL}} -e BITBUCKET_TOKEN={{TOKEN}} -e MCP_TRANSPORT=stdio -- bitbucket-dc-mcp
 ```
 
 ### Claude Code — `.mcp.json`

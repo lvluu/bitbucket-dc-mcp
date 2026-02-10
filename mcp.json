@@ -3,11 +3,15 @@
     "bitbucket-dc-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "bitbucket-dc-mcp"],
+      "args": [
+        "-y",
+        "bitbucket-dc-mcp"
+      ],
       "env": {
+        "MCP_TRANSPORT": "http",
+        "PORT": "3333",
         "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
-        "BITBUCKET_TOKEN": "your-token",
-        "MCP_TRANSPORT": "stdio"
+        "BITBUCKET_TOKEN": "your-token"
       }
     }
   }
