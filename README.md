@@ -260,11 +260,11 @@ See existing files in `src/tools/` for examples.
 
 ## Publishing
 
-Releases are automated via GitHub Actions. To publish a new version:
+Releases are fully automated via [release-please](https://github.com/googleapis/release-please) and GitHub Actions:
 
-1. Update the version in `package.json`
-2. Create a GitHub release (tag matching `vX.Y.Z`)
-3. The workflow builds, tests, and publishes to npm automatically
+1. Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.)
+2. On push to `main`, release-please automatically creates/updates a release PR with version bump and changelog
+3. When the release PR is merged, the workflow publishes to npm automatically
 
 Requires an `NPM_TOKEN` secret configured in the GitHub repository settings.
 
