@@ -11,6 +11,8 @@ const DESC_REPO_SLUG = "Repository slug";
 const DESC_ITEMS_PER_PAGE = "Items per page";
 const DESC_START_INDEX = "Start index";
 const DESC_FETCH_ALL_PAGES = "Fetch all pages";
+const DESC_PR_ID = "Pull request ID";
+const DESC_COMMENT_VERSION = "Comment version for optimistic locking";
 
 const prTasksModule: RegisterableModule = {
   type: "tool",
@@ -24,7 +26,7 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().default(true).describe(DESC_FETCH_ALL_PAGES),
@@ -60,7 +62,7 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         text: z.string().describe("Task text"),
         anchorPath: z.string().optional().describe("File path for inline task"),
         anchorLine: z.number().optional().describe("Line number"),
@@ -101,9 +103,9 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         commentId: z.number().describe("Comment/task ID"),
-        version: z.number().describe("Comment version for optimistic locking"),
+        version: z.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -127,9 +129,9 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         commentId: z.number().describe("Comment/task ID"),
-        version: z.number().describe("Comment version for optimistic locking"),
+        version: z.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {

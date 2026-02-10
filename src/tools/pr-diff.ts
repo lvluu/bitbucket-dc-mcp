@@ -11,6 +11,7 @@ const DESC_REPO_SLUG = "Repository slug";
 const DESC_ITEMS_PER_PAGE = "Items per page";
 const DESC_START_INDEX = "Start index";
 const DESC_FETCH_ALL_PAGES = "Fetch all pages";
+const DESC_PR_ID = "Pull request ID";
 
 const prDiffModule: RegisterableModule = {
   type: "tool",
@@ -24,7 +25,7 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         contextLines: z.number().optional().describe("Number of context lines in diff"),
         withComments: z.boolean().optional().describe("Include comments in diff response"),
       },
@@ -53,7 +54,7 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -77,7 +78,7 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -101,7 +102,7 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),

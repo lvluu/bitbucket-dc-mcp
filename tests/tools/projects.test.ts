@@ -18,7 +18,7 @@ const toolHandlers = new Map<string, (args: Record<string, unknown>) => Promise<
 
 function registerTools() {
   const fakeServer = {
-    tool: (name: string, _desc: string, _schema: unknown, handler: (args: Record<string, unknown>) => Promise<unknown>) => {
+    registerTool: (name: string, _config: unknown, handler: (args: Record<string, unknown>) => Promise<unknown>) => {
       toolHandlers.set(name, handler);
     },
   } as unknown as McpServer;

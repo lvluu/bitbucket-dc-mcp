@@ -11,6 +11,7 @@ const DESC_REPO_SLUG = "Repository slug";
 const DESC_ITEMS_PER_PAGE = "Items per page";
 const DESC_START_INDEX = "Start index";
 const DESC_FETCH_ALL_PAGES = "Fetch all pages";
+const DESC_PR_ID = "Pull request ID";
 
 const pullRequestsModule: RegisterableModule = {
   type: "tool",
@@ -59,7 +60,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -135,7 +136,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         title: z.string().optional().describe("New title"),
         description: z.string().optional().describe("New description"),
       },
@@ -170,7 +171,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         message: z.string().optional().describe("Merge commit message"),
         strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional().describe("Merge strategy"),
       },
@@ -206,7 +207,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         message: z.string().optional().describe("Reason for declining"),
       },
       },
@@ -233,7 +234,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -258,7 +259,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -279,7 +280,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -300,7 +301,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         draft: z.boolean().describe("true to mark as draft, false to remove draft status"),
       },
       },
@@ -331,7 +332,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {

@@ -11,6 +11,9 @@ const DESC_REPO_SLUG = "Repository slug";
 const DESC_ITEMS_PER_PAGE = "Items per page";
 const DESC_START_INDEX = "Start index";
 const DESC_FETCH_ALL_PAGES = "Fetch all pages";
+const DESC_PR_ID = "Pull request ID";
+const DESC_COMMENT_ID = "Comment ID";
+const DESC_COMMENT_VERSION = "Comment version for optimistic locking";
 
 const prCommentsModule: RegisterableModule = {
   type: "tool",
@@ -24,7 +27,7 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
@@ -55,7 +58,7 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         text: z.string().describe("Comment text"),
         parentId: z.number().optional().describe("Parent comment ID for replies"),
         anchorPath: z.string().optional().describe("File path for inline comment"),
@@ -103,8 +106,8 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
-        commentId: z.number().describe("Comment ID"),
+        prId: z.number().describe(DESC_PR_ID),
+        commentId: z.number().describe(DESC_COMMENT_ID),
       },
       },
       async (args) => {
@@ -127,10 +130,10 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
-        commentId: z.number().describe("Comment ID"),
+        prId: z.number().describe(DESC_PR_ID),
+        commentId: z.number().describe(DESC_COMMENT_ID),
         text: z.string().describe("Updated comment text"),
-        version: z.number().describe("Comment version for optimistic locking"),
+        version: z.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -154,9 +157,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
-        version: z.number().describe("Comment version for optimistic locking"),
+        version: z.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -180,9 +183,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
+        prId: z.number().describe(DESC_PR_ID),
         commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
-        version: z.number().describe("Comment version for optimistic locking"),
+        version: z.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -206,9 +209,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe("Pull request ID"),
-        commentId: z.number().describe("Comment ID"),
-        version: z.number().describe("Comment version for optimistic locking"),
+        prId: z.number().describe(DESC_PR_ID),
+        commentId: z.number().describe(DESC_COMMENT_ID),
+        version: z.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
