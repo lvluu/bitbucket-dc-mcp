@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.0.0...v1.0.1) (2026-02-10)
+
+
+### Bug Fixes
+
+* remove --provenance flag for private repo publishing ([3f70a27](https://github.com/lvluu/bitbucket-dc-mcp/commit/3f70a27e4760fde6e370890846cdfee9285d14e6))
+
 ## 1.0.0 (2026-02-10)
 
 
