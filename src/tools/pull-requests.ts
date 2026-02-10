@@ -135,10 +135,15 @@ const pullRequestsModule: RegisterableModule = {
       async (args) => {
         try {
           const client = getClient();
-          // Fetch current PR for optimistic locking version
+          // Fetch current PR for optimistic locking version and to preserve fields
           const current = await client.get(prPath(args.projectKey, args.repoSlug, args.prId));
+          const currentData = current.data as Record<string, unknown>;
           const data: Record<string, unknown> = {
-            version: (current.data as Record<string, unknown>).version,
+            title: currentData.title,
+            description: currentData.description,
+            version: currentData.version,
+            toRef: currentData.toRef,
+            reviewers: currentData.reviewers,
           };
           if (args.title !== undefined) data.title = args.title;
           if (args.description !== undefined) data.description = args.description;
@@ -286,7 +291,10 @@ const pullRequestsModule: RegisterableModule = {
           const currentData = current.data as Record<string, unknown>;
           const response = await client.put(prPath(args.projectKey, args.repoSlug, args.prId), {
             title: currentData.title,
+            description: currentData.description,
             version: currentData.version,
+            toRef: currentData.toRef,
+            reviewers: currentData.reviewers,
             draft: args.draft,
           });
           return jsonResult(response.data);
