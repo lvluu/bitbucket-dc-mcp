@@ -1,6 +1,6 @@
 # Bitbucket DC MCP Server
 
-[![npm version](https://img.shields.io/npm/v/bitbucket-dc-mcp.svg)](https://www.npmjs.com/package/bitbucket-dc-mcp)
+[![npm version](https://img.shields.io/npm/v/@shibainu16/bitbucket-dc-mcp.svg)](https://www.npmjs.com/package/@shibainu16/bitbucket-dc-mcp)
 [![CI](https://github.com/lvluu/bitbucket-dc-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/lvluu/bitbucket-dc-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -21,7 +21,7 @@ graph LR
 ### Global install
 
 ```bash
-npm install -g bitbucket-dc-mcp
+npm install -g @shibainu16/bitbucket-dc-mcp
 ```
 
 ### Using npx (no install required)
@@ -30,7 +30,7 @@ npm install -g bitbucket-dc-mcp
 BITBUCKET_URL=https://bitbucket.example.com \
 BITBUCKET_TOKEN=your-token \
 MCP_TRANSPORT=stdio \
-npx bitbucket-dc-mcp
+npx @shibainu16/bitbucket-dc-mcp
 ```
 
 ## Prerequisites
@@ -69,7 +69,7 @@ PORT=3000
 bitbucket-dc-mcp
 
 # Or via npx
-npx bitbucket-dc-mcp
+npx @shibainu16/bitbucket-dc-mcp
 ```
 
 The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
@@ -128,7 +128,7 @@ Add to your **VS Code settings** (`settings.json`) or workspace `.vscode/mcp.jso
     "bitbucket-dc-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "bitbucket-dc-mcp"],
+      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token",
@@ -148,7 +148,7 @@ If using `settings.json` directly, nest it under `"mcp"`:
       "bitbucket-dc-mcp": {
         "type": "stdio",
         "command": "npx",
-        "args": ["-y", "bitbucket-dc-mcp"],
+        "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
         "env": {
           "BITBUCKET_URL": "https://bitbucket.example.com",
           "BITBUCKET_TOKEN": "your-token",
@@ -169,7 +169,7 @@ claude mcp add bitbucket-dc-mcp \
   -e BITBUCKET_URL=https://bitbucket.example.com \
   -e BITBUCKET_TOKEN=your-token \
   -e MCP_TRANSPORT=stdio \
-  -- npx -y bitbucket-dc-mcp
+  -- npx -y @shibainu16/bitbucket-dc-mcp
 ```
 
 Or manually create/edit `.mcp.json` in your project root:
@@ -179,7 +179,7 @@ Or manually create/edit `.mcp.json` in your project root:
   "mcpServers": {
     "bitbucket-dc-mcp": {
       "command": "npx",
-      "args": ["-y", "bitbucket-dc-mcp"],
+      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token",
@@ -199,7 +199,7 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
   "mcpServers": {
     "bitbucket-dc-mcp": {
       "command": "npx",
-      "args": ["-y", "bitbucket-dc-mcp"],
+      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token",

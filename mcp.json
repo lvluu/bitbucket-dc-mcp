@@ -5,7 +5,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "bitbucket-dc-mcp"
+        "@shibainu16/bitbucket-dc-mcp"
       ],
       "env": {
         "MCP_TRANSPORT": "http",

@@ -7,7 +7,7 @@ You are helping a user set up the **bitbucket-dc-mcp** MCP server. Your job is t
 ### Option A: Global install from npm
 
 ```bash
-npm install -g bitbucket-dc-mcp
+npm install -g @shibainu16/bitbucket-dc-mcp
 ```
 
 ### Option B: From source
