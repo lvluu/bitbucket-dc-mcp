@@ -1,8 +1,10 @@
 # Bitbucket DC MCP Server
 
-A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes **Bitbucket Data Center REST API v1.0** as tools for AI assistants.
+[![npm version](https://img.shields.io/npm/v/bitbucket-dc-mcp.svg)](https://www.npmjs.com/package/bitbucket-dc-mcp)
+[![CI](https://github.com/lvluu/bitbucket-dc-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/lvluu/bitbucket-dc-mcp/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-</div>
+A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that exposes **Bitbucket Data Center REST API v1.0** as tools for AI assistants.
 
 ## Overview
 
@@ -14,6 +16,23 @@ graph LR
     B <-->|REST API v1.0| C[Bitbucket Data Center]
 ```
 
+## Installation
+
+### Global install
+
+```bash
+npm install -g bitbucket-dc-mcp
+```
+
+### Using npx (no install required)
+
+```bash
+BITBUCKET_URL=https://bitbucket.example.com \
+BITBUCKET_TOKEN=your-token \
+MCP_TRANSPORT=stdio \
+npx bitbucket-dc-mcp
+```
+
 ## Prerequisites
 
 - Node.js >= 20.11.0
@@ -22,30 +41,13 @@ graph LR
 
 ## Quick Start
 
-### Using npx (no install required)
-
-```bash
-BITBUCKET_URL=https://bitbucket.yourcompany.com \
-BITBUCKET_TOKEN=your-token \
-MCP_TRANSPORT=stdio \
-npx bitbucket-dc-mcp
-```
-
-### From source
-
-#### 1. Install dependencies
-
-```bash
-npm install
-```
-
-#### 2. Configure environment
+### 1. Configure environment
 
 Create a `.env` file (or export variables in your shell):
 
 ```env
 # Required — your Bitbucket DC base URL
-BITBUCKET_URL=https://bitbucket.yourcompany.com
+BITBUCKET_URL=https://bitbucket.example.com
 
 # Authentication (choose one)
 BITBUCKET_TOKEN=your-personal-access-token
@@ -60,11 +62,14 @@ MCP_TRANSPORT=http
 PORT=3000
 ```
 
-#### 3. Build and run
+### 2. Run
 
 ```bash
-npm run build
-node build/index.js
+# If installed globally
+bitbucket-dc-mcp
+
+# Or via npx
+npx bitbucket-dc-mcp
 ```
 
 The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
@@ -94,7 +99,7 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 Streamable HTTP transport for web deployments and remote access:
 
 ```bash
-npm run serve:http
+MCP_TRANSPORT=http bitbucket-dc-mcp
 ```
 
 Endpoints:
@@ -108,7 +113,7 @@ Endpoints:
 Traditional stdio transport for local clients like Claude Desktop:
 
 ```bash
-npm run serve:stdio
+MCP_TRANSPORT=stdio bitbucket-dc-mcp
 ```
 
 ## Client Integration
@@ -125,7 +130,7 @@ Add to your **VS Code settings** (`settings.json`) or workspace `.vscode/mcp.jso
       "command": "npx",
       "args": ["-y", "bitbucket-dc-mcp"],
       "env": {
-        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token",
         "MCP_TRANSPORT": "stdio"
       }
@@ -145,7 +150,7 @@ If using `settings.json` directly, nest it under `"mcp"`:
         "command": "npx",
         "args": ["-y", "bitbucket-dc-mcp"],
         "env": {
-          "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+          "BITBUCKET_URL": "https://bitbucket.example.com",
           "BITBUCKET_TOKEN": "your-token",
           "MCP_TRANSPORT": "stdio"
         }
@@ -161,7 +166,7 @@ Add to your project's `.mcp.json`, or configure via the CLI:
 
 ```bash
 claude mcp add bitbucket-dc-mcp \
-  -e BITBUCKET_URL=https://bitbucket.yourcompany.com \
+  -e BITBUCKET_URL=https://bitbucket.example.com \
   -e BITBUCKET_TOKEN=your-token \
   -e MCP_TRANSPORT=stdio \
   -- npx -y bitbucket-dc-mcp
@@ -176,7 +181,7 @@ Or manually create/edit `.mcp.json` in your project root:
       "command": "npx",
       "args": ["-y", "bitbucket-dc-mcp"],
       "env": {
-        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token",
         "MCP_TRANSPORT": "stdio"
       }
@@ -196,7 +201,7 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
       "command": "npx",
       "args": ["-y", "bitbucket-dc-mcp"],
       "env": {
-        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token",
         "MCP_TRANSPORT": "stdio"
       }
@@ -205,20 +210,16 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
 }
 ```
 
-## Sharing & Installation
+## Development
 
-The recommended way to share and run this MCP server internally is via `npx` (no install required):
+### From source
 
 ```bash
-BITBUCKET_URL=https://bitbucket.yourcompany.com \
-BITBUCKET_TOKEN=your-token \
-MCP_TRANSPORT=stdio \
-npx bitbucket-dc-mcp
+git clone https://github.com/lvluu/bitbucket-dc-mcp.git
+cd bitbucket-dc-mcp
+npm install
+npm run build
 ```
-
-Share this command and the configuration instructions with your coworkers.
-
-## Development
 
 ### Commands
 
@@ -256,6 +257,16 @@ The MCP Inspector provides an interactive UI to browse and test all registered t
 4. Or use the generator: `npm run gen:tool`
 
 See existing files in `src/tools/` for examples.
+
+## Publishing
+
+Releases are automated via GitHub Actions. To publish a new version:
+
+1. Update the version in `package.json`
+2. Create a GitHub release (tag matching `vX.Y.Z`)
+3. The workflow builds, tests, and publishes to npm automatically
+
+Requires an `NPM_TOKEN` secret configured in the GitHub repository settings.
 
 ## Troubleshooting
 

@@ -30,7 +30,7 @@ function isTruthy(value: string | undefined): boolean {
 export function loadConfig(): BitbucketDCConfig {
   const rawUrl = process.env.BITBUCKET_URL;
   if (rawUrl === undefined || rawUrl === '') {
-    throw new Error("BITBUCKET_URL is required (e.g. https://bitbucket.yourcompany.com)");
+    throw new Error("BITBUCKET_URL is required (e.g. https://bitbucket.example.com)");
   }
 
   const token = process.env.BITBUCKET_TOKEN;

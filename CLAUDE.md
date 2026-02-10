@@ -25,7 +25,7 @@ npm run knip           # Find unused exports/dependencies
 ## Environment Variables
 
 Required (set in `.env` or shell):
-- `BITBUCKET_URL` — Bitbucket DC base URL (e.g. `https://bitbucket.yourcompany.com`), auto-normalized to append `/rest/api/1.0`
+- `BITBUCKET_URL` — Bitbucket DC base URL (e.g. `https://bitbucket.example.com`), auto-normalized to append `/rest/api/1.0`
 - `BITBUCKET_TOKEN` — Personal access token (Bearer auth), **OR**
 - `BITBUCKET_USERNAME` + `BITBUCKET_PASSWORD` — Basic auth
 

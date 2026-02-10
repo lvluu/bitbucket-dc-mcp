@@ -10,7 +10,7 @@
       "env": {
         "MCP_TRANSPORT": "http",
         "PORT": "3333",
-        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_URL": "https://bitbucket.example.com",
         "BITBUCKET_TOKEN": "your-token"
       }
     }

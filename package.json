@@ -30,8 +30,16 @@
     "bitbucket-datacenter",
     "model-context-protocol"
   ],
-  "author": "",
+  "author": "lvluu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lvluu/bitbucket-dc-mcp.git"
+  },
+  "homepage": "https://github.com/lvluu/bitbucket-dc-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/lvluu/bitbucket-dc-mcp/issues"
+  },
   "engines": {
     "node": ">=20.11.0"
   },
