@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -26,9 +27,12 @@ export async function boot(
   }
 
   const transportMode = mode ?? (process.env.MCP_TRANSPORT as TransportMode | undefined) ?? "http";
+  const require = createRequire(import.meta.url);
+  const pkg = require("../../package.json") as { version: string };
+
   const server = new McpServer({
     name: "bitbucket-dc-mcp",
-    version: "1.0.0",
+    version: pkg.version,
     description: "MCP server exposing Bitbucket Data Center operations as tools",
   });
 
