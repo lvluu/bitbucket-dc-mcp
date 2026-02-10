@@ -10,17 +10,12 @@ vi.mock("../../src/lib/client.js", () => ({
 }));
 
 import prTasksModule from "../../src/tools/pr-tasks.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { createFakeServer, type ToolHandler } from "../helpers/fake-server.js";
 
-const toolHandlers = new Map<string, (args: Record<string, unknown>) => Promise<unknown>>();
+const toolHandlers = new Map<string, ToolHandler>();
 
 function registerTools() {
-  const fakeServer = {
-    registerTool: (name: string, _config: unknown, handler: (args: Record<string, unknown>) => Promise<unknown>) => {
-      toolHandlers.set(name, handler);
-    },
-  } as unknown as McpServer;
-  prTasksModule.register(fakeServer);
+  prTasksModule.register(createFakeServer(toolHandlers));
 }
 
 describe("pr-tasks tools", () => {

@@ -2,35 +2,15 @@
 
 You are helping a user set up the **bitbucket-dc-mcp** MCP server. Your job is to walk them through installing it, then collect their credentials and output the correct client configuration.
 
-## Step 1 — Install
+## Step 1 — No installation needed!
 
-### Option A: Global install from npm
-
-```bash
-npm install -g @shibainu16/bitbucket-dc-mcp
-```
-
-### Option B: From source
+This package can be run directly with `npx`:
 
 ```bash
-git clone https://github.com/lvluu/bitbucket-dc-mcp.git
-cd bitbucket-dc-mcp
-npm ci
-npm run build
-npm link
+npx -y @shibainu16/bitbucket-dc-mcp --version
 ```
 
-## Step 2 — Verify executable works
-
-```bash
-# Should print the path to the binary
-which bitbucket-dc-mcp
-
-# Should fail with "BITBUCKET_TOKEN or USERNAME/PASSWORD is required" — that's correct
-bitbucket-dc-mcp 2>&1 || true
-```
-
-After this, `bitbucket-dc-mcp` is available as a global command.
+No global installation or cloning required. The npx command will automatically fetch and run the latest version.
 
 ## Step 3 — Gather information
 
@@ -50,7 +30,7 @@ Ask the user the following questions (skip any they've already answered):
 
 ## Step 4 — Build the configuration
 
-Use the answers to produce the correct config block. Since the tool is installed globally, use `bitbucket-dc-mcp` as the command directly (no `node`, no `npx`).
+Use the answers to produce the correct config block. Use `npx -y @shibainu16/bitbucket-dc-mcp` as the command.
 
 ### Environment variables reference
 
@@ -72,7 +52,8 @@ Use the answers to produce the correct config block. Since the tool is installed
   "servers": {
     "bitbucket-dc-mcp": {
       "type": "stdio",
-      "command": "bitbucket-dc-mcp",
+      "command": "npx",
+      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "{{BITBUCKET_URL}}",
         "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -91,7 +72,8 @@ Use the answers to produce the correct config block. Since the tool is installed
     "servers": {
       "bitbucket-dc-mcp": {
         "type": "stdio",
-        "command": "bitbucket-dc-mcp",
+        "command": "npx",
+        "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
         "env": {
           "BITBUCKET_URL": "{{BITBUCKET_URL}}",
           "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -107,10 +89,10 @@ Use the answers to produce the correct config block. Since the tool is installed
 
 ```bash
 # User-level (available in all projects)
-claude mcp add bitbucket-dc-mcp -s user -e BITBUCKET_URL={{BITBUCKET_URL}} -e BITBUCKET_TOKEN={{TOKEN}} -e MCP_TRANSPORT=stdio -- bitbucket-dc-mcp
+claude mcp add bitbucket-dc-mcp -s user -e BITBUCKET_URL={{BITBUCKET_URL}} -e BITBUCKET_TOKEN={{TOKEN}} -e MCP_TRANSPORT=stdio -- npx -y @shibainu16/bitbucket-dc-mcp
 
 # Project-level (available only in the current project)
-claude mcp add bitbucket-dc-mcp -s project -e BITBUCKET_URL={{BITBUCKET_URL}} -e BITBUCKET_TOKEN={{TOKEN}} -e MCP_TRANSPORT=stdio -- bitbucket-dc-mcp
+claude mcp add bitbucket-dc-mcp -s project -e BITBUCKET_URL={{BITBUCKET_URL}} -e BITBUCKET_TOKEN={{TOKEN}} -e MCP_TRANSPORT=stdio -- npx -y @shibainu16/bitbucket-dc-mcp
 ```
 
 ### Claude Code — `.mcp.json`
@@ -119,7 +101,8 @@ claude mcp add bitbucket-dc-mcp -s project -e BITBUCKET_URL={{BITBUCKET_URL}} -e
 {
   "mcpServers": {
     "bitbucket-dc-mcp": {
-      "command": "bitbucket-dc-mcp",
+      "command": "npx",
+      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "{{BITBUCKET_URL}}",
         "BITBUCKET_TOKEN": "{{TOKEN}}",
@@ -136,7 +119,8 @@ claude mcp add bitbucket-dc-mcp -s project -e BITBUCKET_URL={{BITBUCKET_URL}} -e
 {
   "mcpServers": {
     "bitbucket-dc-mcp": {
-      "command": "bitbucket-dc-mcp",
+      "command": "npx",
+      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "{{BITBUCKET_URL}}",
         "BITBUCKET_TOKEN": "{{TOKEN}}",
