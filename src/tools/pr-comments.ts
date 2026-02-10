@@ -140,6 +140,54 @@ const prCommentsModule: RegisterableModule = {
     );
 
     server.tool(
+      "resolvePRComment",
+      "Resolve a pull request comment thread (sets threadResolved to true)",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+        commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
+        version: z.number().describe("Comment version for optimistic locking"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const response = await client.put(
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}/comments/${String(args.commentId)}`,
+            { threadResolved: true, version: args.version }
+          );
+          return jsonResult(response.data);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
+      "reopenPRComment",
+      "Reopen a resolved pull request comment thread (sets threadResolved to false)",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+        commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
+        version: z.number().describe("Comment version for optimistic locking"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const response = await client.put(
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}/comments/${String(args.commentId)}`,
+            { threadResolved: false, version: args.version }
+          );
+          return jsonResult(response.data);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
       "deletePRComment",
       "Delete a pull request comment (requires BITBUCKET_ENABLE_DANGEROUS=true)",
       {

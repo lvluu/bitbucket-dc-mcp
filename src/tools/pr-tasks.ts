@@ -92,7 +92,7 @@ const prTasksModule: RegisterableModule = {
 
     server.tool(
       "resolveTask",
-      "Resolve a task (blocker comment) by updating its state",
+      "Resolve a task (blocker comment) by setting its state to RESOLVED",
       {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
@@ -105,7 +105,31 @@ const prTasksModule: RegisterableModule = {
           const client = getClient();
           const response = await client.put(
             `${prPath(args.projectKey, args.repoSlug, args.prId)}/comments/${String(args.commentId)}`,
-            { severity: "NORMAL", version: args.version }
+            { state: "RESOLVED", version: args.version }
+          );
+          return jsonResult(response.data);
+        } catch (error) {
+          return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
+        }
+      }
+    );
+
+    server.tool(
+      "reopenTask",
+      "Reopen a resolved task (blocker comment) by setting its state back to OPEN",
+      {
+        projectKey: z.string().describe(DESC_PROJECT_KEY),
+        repoSlug: z.string().describe(DESC_REPO_SLUG),
+        prId: z.number().describe("Pull request ID"),
+        commentId: z.number().describe("Comment/task ID"),
+        version: z.number().describe("Comment version for optimistic locking"),
+      },
+      async (args) => {
+        try {
+          const client = getClient();
+          const response = await client.put(
+            `${prPath(args.projectKey, args.repoSlug, args.prId)}/comments/${String(args.commentId)}`,
+            { state: "OPEN", version: args.version }
           );
           return jsonResult(response.data);
         } catch (error) {
