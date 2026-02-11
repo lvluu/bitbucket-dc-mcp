@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.2.0...v1.3.0) (2026-02-11)
+
+
+### Features
+
+* add response summarization to list endpoints for reduced token usage ([01fcc1c](https://github.com/lvluu/bitbucket-dc-mcp/commit/01fcc1c9068e168f7099790feafd2d319db3863f))
+
+
+### Bug Fixes
+
+* skip integration tests in CI when Bitbucket credentials are unavailable ([078783f](https://github.com/lvluu/bitbucket-dc-mcp/commit/078783fb5adb373500845dbb88f9e33a4393e4fa))
+
 ## [1.2.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.1.0...v1.2.0) (2026-02-11)
 
 
