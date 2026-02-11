@@ -107,6 +107,10 @@ Destructive operations check `getConfig().enableDangerous` before executing.
 4. Build and test: `npm run build && npm run inspect`
 5. Or use the generator: `npm run gen:tool`
 
+## Safety Rules
+
+- **Real Bitbucket testing: READ-ONLY operations only.** When running integration tests or manual tests against the real Bitbucket instance (via `.env`), only use read/list/get operations. Never call create, update, delete, merge, approve, fork, or any write operation against the real server.
+
 ## Key Conventions
 
 - ES modules with `.js` extensions in all imports (even for `.ts` source files)
