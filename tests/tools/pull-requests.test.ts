@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createMockAxiosClient, axiosResponse, paginatedResponse } from "../helpers/mock-client.js";
 
 const mockAxios = createMockAxiosClient();
-vi.mock("../../src/lib/client.js", () => ({
+vi.mock("#lib/client.js", () => ({
   getClient: () => mockAxios,
   getConfig: () => ({ enableDangerous: false }),
   repoPath: (p: string, r: string) => `/projects/${p}/repos/${r}`,
   prPath: (p: string, r: string, id: string | number) => `/projects/${p}/repos/${r}/pull-requests/${id}`,
 }));
 
-import pullRequestsModule from "../../src/tools/pull-requests.js";
+import pullRequestsModule from "#tools/pull-requests.js";
 import { createFakeServer, type ToolHandler } from "../helpers/fake-server.js";
 
 const toolHandlers = new Map<string, ToolHandler>();

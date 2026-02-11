@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { repoPath, prPath } from "../../src/lib/client.js";
+import { repoPath, prPath } from "#lib/client.js";
 
 describe("client", () => {
   describe("repoPath", () => {

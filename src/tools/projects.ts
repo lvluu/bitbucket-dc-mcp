@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { getClient } from "../lib/client.js";
-import { formatError, jsonResult } from "../lib/errors.js";
-import { fetchPage } from "../lib/pagination.js";
-import type { RegisterableModule } from "../registry/types.js";
+import type { RegisterableModule } from "#registry/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getClient } from "#lib/client.js";
+import { formatError, jsonResult } from "#lib/errors.js";
+import { fetchPage } from "#lib/pagination.js";
 
 const projectsModule: RegisterableModule = {
   type: "tool",

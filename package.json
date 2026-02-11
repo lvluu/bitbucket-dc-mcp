@@ -40,6 +40,12 @@
   "bugs": {
     "url": "https://github.com/lvluu/bitbucket-dc-mcp/issues"
   },
+  "imports": {
+    "#lib/*.js": "./build/lib/*.js",
+    "#registry/*.js": "./build/registry/*.js",
+    "#server/*.js": "./build/server/*.js",
+    "#tools/*.js": "./build/tools/*.js"
+  },
   "engines": {
     "node": ">=22.0.0"
   },

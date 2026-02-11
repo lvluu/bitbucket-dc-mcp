@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { fetchPage, DC_DEFAULT_LIMIT, DC_MAX_LIMIT } from "../../src/lib/pagination.js";
+import { fetchPage, DC_DEFAULT_LIMIT, DC_MAX_LIMIT } from "#lib/pagination.js";
 import type { AxiosInstance } from "axios";
 
 function mockClient(responses: Array<{ data: Record<string, unknown> }>): AxiosInstance {

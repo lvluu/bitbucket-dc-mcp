@@ -2,15 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createMockAxiosClient, axiosResponse, paginatedResponse } from "../helpers/mock-client.js";
 
 const mockAxios = createMockAxiosClient();
-vi.mock("../../src/lib/client.js", () => ({
+vi.mock("#lib/client.js", () => ({
   getClient: () => mockAxios,
   getConfig: () => ({ enableDangerous: false }),
   repoPath: (p: string, r: string) => `/projects/${p}/repos/${r}`,
   prPath: (p: string, r: string, id: string | number) => `/projects/${p}/repos/${r}/pull-requests/${id}`,
 }));
 
-import prCommentsModule from "../../src/tools/pr-comments.js";
+import prCommentsModule from "#tools/pr-comments.js";
 import { createFakeServer, type ToolHandler } from "../helpers/fake-server.js";
+import { hasActiveReview, reviewKey, startReviewSession, clearReviewSession } from "#lib/review-state.js";
 
 const toolHandlers = new Map<string, ToolHandler>();
 
@@ -137,6 +138,65 @@ describe("pr-comments tools", () => {
 
       expect(result.isError).toBe(true);
       expect(result.content[0].text).toContain("disabled");
+    });
+  });
+
+  describe("addPRComment with active review", () => {
+    const key = reviewKey("PROJ", "repo", 1);
+
+    beforeEach(() => {
+      if (hasActiveReview(key)) {
+        clearReviewSession(key);
+      }
+    });
+
+    it("should buffer comment when review is active", async () => {
+      startReviewSession(key);
+
+      const handler = toolHandlers.get("addPRComment")!;
+      const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1, text: "pending comment" }) as any;
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.state).toBe("PENDING");
+      expect(parsed.pendingIndex).toBe(0);
+      expect(parsed.text).toBe("pending comment");
+      expect(mockAxios.post).not.toHaveBeenCalled();
+    });
+
+    it("should buffer inline comment with anchor when review is active", async () => {
+      startReviewSession(key);
+
+      const handler = toolHandlers.get("addPRComment")!;
+      const result = await handler({
+        projectKey: "PROJ", repoSlug: "repo", prId: 1,
+        text: "inline comment",
+        anchorPath: "src/main.ts",
+        anchorLine: 42,
+        anchorLineType: "ADDED",
+        anchorFileType: "TO",
+      }) as any;
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.state).toBe("PENDING");
+      expect(parsed.pendingIndex).toBe(0);
+      expect(mockAxios.post).not.toHaveBeenCalled();
+
+      // Clean up
+      clearReviewSession(key);
+    });
+
+    it("should POST normally when no review is active", async () => {
+      mockAxios.post.mockResolvedValueOnce(axiosResponse({ id: 5, text: "direct" }));
+
+      const handler = toolHandlers.get("addPRComment")!;
+      const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1, text: "direct" }) as any;
+
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        "/projects/PROJ/repos/repo/pull-requests/1/comments",
+        { text: "direct" }
+      );
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.id).toBe(5);
     });
   });
 });

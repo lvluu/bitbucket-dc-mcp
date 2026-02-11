@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import axios, { AxiosError } from "axios";
-import { formatError, jsonResult, textResult } from "../../src/lib/errors.js";
+import { formatError, jsonResult, textResult } from "#lib/errors.js";
 
 describe("errors", () => {
   describe("formatError", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { loadConfig, getAuthHeaders, getBasicAuth } from "../../src/lib/config.js";
+import { loadConfig, getAuthHeaders, getBasicAuth } from "#lib/config.js";
 
 describe("config", () => {
   const originalEnv = process.env;

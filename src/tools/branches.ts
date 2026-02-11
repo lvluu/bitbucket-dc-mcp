@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { getClient, repoPath } from "../lib/client.js";
-import { formatError, jsonResult, textResult } from "../lib/errors.js";
-import { fetchPage } from "../lib/pagination.js";
-import type { RegisterableModule } from "../registry/types.js";
+import type { RegisterableModule } from "#registry/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getClient, repoPath } from "#lib/client.js";
+import { formatError, jsonResult, textResult } from "#lib/errors.js";
+import { fetchPage } from "#lib/pagination.js";
 
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -87,7 +87,7 @@ const branchesModule: RegisterableModule = {
       },
       async (args) => {
         try {
-          const { getConfig } = await import("../lib/client.js");
+          const { getConfig } = await import("#lib/client.js");
           const config = getConfig();
           if (!config.enableDangerous) {
             return { content: [{ type: "text" as const, text: "deleteBranch is disabled. Set BITBUCKET_ENABLE_DANGEROUS=true." }], isError: true };

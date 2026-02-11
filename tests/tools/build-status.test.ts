@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createMockAxiosClient, axiosResponse, paginatedResponse } from "../helpers/mock-client.js";
 
 const mockAxios = createMockAxiosClient();
-vi.mock("../../src/lib/client.js", () => ({
+vi.mock("#lib/client.js", () => ({
   getClient: () => mockAxios,
   getConfig: () => ({ baseUrl: "https://bitbucket.example.com/rest/api/1.0", enableDangerous: false }),
   getOriginUrl: () => "https://bitbucket.example.com",
 }));
 
-import buildStatusModule from "../../src/tools/build-status.js";
+import buildStatusModule from "#tools/build-status.js";
 import { createFakeServer, type ToolHandler } from "../helpers/fake-server.js";
 
 const toolHandlers = new Map<string, ToolHandler>();

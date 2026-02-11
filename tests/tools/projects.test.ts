@@ -3,14 +3,14 @@ import { createMockAxiosClient, axiosResponse, paginatedResponse } from "../help
 
 // Mock the client module before importing the tool module
 const mockAxios = createMockAxiosClient();
-vi.mock("../../src/lib/client.js", () => ({
+vi.mock("#lib/client.js", () => ({
   getClient: () => mockAxios,
   getConfig: () => ({ enableDangerous: false }),
   repoPath: (p: string, r: string) => `/projects/${p}/repos/${r}`,
   prPath: (p: string, r: string, id: string | number) => `/projects/${p}/repos/${r}/pull-requests/${id}`,
 }));
 
-import projectsModule from "../../src/tools/projects.js";
+import projectsModule from "#tools/projects.js";
 import { createFakeServer, type ToolHandler } from "../helpers/fake-server.js";
 
 const toolHandlers = new Map<string, ToolHandler>();

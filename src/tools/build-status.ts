@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { getClient, getOriginUrl } from "../lib/client.js";
-import { formatError, jsonResult } from "../lib/errors.js";
-import { fetchPage } from "../lib/pagination.js";
-import type { RegisterableModule } from "../registry/types.js";
+import type { RegisterableModule } from "#registry/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getClient, getOriginUrl } from "#lib/client.js";
+import { formatError, jsonResult } from "#lib/errors.js";
+import { fetchPage } from "#lib/pagination.js";
 
 const DESC_COMMIT_ID = "Full 40-character commit hash";
 const DESC_ITEMS_PER_PAGE = "Items per page";

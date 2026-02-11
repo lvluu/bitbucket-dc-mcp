@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { getClient, prPath } from "../lib/client.js";
-import { formatError, jsonResult, textResult } from "../lib/errors.js";
-import { fetchPage } from "../lib/pagination.js";
-import type { RegisterableModule } from "../registry/types.js";
+import type { RegisterableModule } from "#registry/types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getClient, prPath } from "#lib/client.js";
+import { formatError, jsonResult, textResult } from "#lib/errors.js";
+import { fetchPage } from "#lib/pagination.js";
+import { hasActiveReview, addPendingComment, reviewKey } from "#lib/review-state.js";
 
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -54,7 +55,7 @@ const prCommentsModule: RegisterableModule = {
     server.registerTool(
       "addPRComment",
       {
-        description: "Add a comment to a pull request (general or inline)",
+        description: "Add a comment to a pull request (general or inline). If a review session is active (via startReview), the comment is buffered instead of posted immediately.",
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
@@ -70,7 +71,6 @@ const prCommentsModule: RegisterableModule = {
       },
       async (args) => {
         try {
-          const client = getClient();
           const body: Record<string, unknown> = { text: args.text };
           if (args.parentId !== undefined) {
             body.parent = { id: args.parentId };
@@ -88,6 +88,15 @@ const prCommentsModule: RegisterableModule = {
           if (args.severity !== undefined) {
             body.severity = args.severity;
           }
+
+          // If a review session is active, buffer the comment instead of posting
+          const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
+          if (hasActiveReview(key)) {
+            const index = addPendingComment(key, body as { text: string; parent?: { id: number }; anchor?: Record<string, unknown>; severity?: string });
+            return jsonResult({ state: "PENDING", pendingIndex: index, text: args.text });
+          }
+
+          const client = getClient();
           const response = await client.post(
             `${prPath(args.projectKey, args.repoSlug, args.prId)}/comments`,
             body
