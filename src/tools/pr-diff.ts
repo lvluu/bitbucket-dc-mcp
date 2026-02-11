@@ -25,8 +25,8 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        contextLines: z.number().optional().describe("Number of context lines in diff"),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        contextLines: z.coerce.number().optional().describe("Number of context lines in diff"),
         withComments: z.boolean().optional().describe("Include comments in diff response"),
       },
       },
@@ -54,7 +54,7 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -78,7 +78,7 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -102,9 +102,9 @@ const prDiffModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
-        start: z.number().optional().describe(DESC_START_INDEX),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
+        start: z.coerce.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
       },
       },

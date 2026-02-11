@@ -31,6 +31,12 @@ export function getConfig(): BitbucketDCConfig {
   return config;
 }
 
+/** Get the Bitbucket server origin (e.g. https://bitbucket.example.com) */
+export function getOriginUrl(): string {
+  const cfg = getConfig();
+  return new URL(cfg.baseUrl).origin;
+}
+
 /** Build the DC API path for a project's repository */
 export function repoPath(projectKey: string, repoSlug: string): string {
   return `/projects/${projectKey}/repos/${repoSlug}`;

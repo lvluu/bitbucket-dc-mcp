@@ -21,14 +21,15 @@ export async function boot(
   // Initialize Bitbucket DC client from environment
   const bbConfig = loadConfig();
   initClient(bbConfig);
-  console.error(`Bitbucket DC MCP Server connecting to: ${bbConfig.baseUrl}`);
+  const require = createRequire(import.meta.url);
+  const pkg = require("../../package.json") as { version: string };
+
+  console.error(`Bitbucket DC MCP Server v${pkg.version} connecting to: ${bbConfig.baseUrl}`);
   if (bbConfig.defaultProject !== undefined) {
     console.error(`Default project: ${bbConfig.defaultProject}`);
   }
 
   const transportMode = mode ?? (process.env.MCP_TRANSPORT as TransportMode | undefined) ?? "http";
-  const require = createRequire(import.meta.url);
-  const pkg = require("../../package.json") as { version: string };
 
   const server = new McpServer({
     name: "bitbucket-dc-mcp",

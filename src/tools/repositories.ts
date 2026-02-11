@@ -21,8 +21,8 @@ const repositoriesModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().optional().describe("Project key (uses BITBUCKET_DEFAULT_PROJECT if not set)"),
         name: z.string().optional().describe("Filter repositories by name (partial match)"),
-        limit: z.number().optional().describe("Number of items per page (default 25, max 100)"),
-        start: z.number().optional().describe("Start index for pagination"),
+        limit: z.coerce.number().optional().describe("Number of items per page (default 25, max 100)"),
+        start: z.coerce.number().optional().describe("Start index for pagination"),
         all: z.boolean().optional().describe("Fetch all pages (up to 1000 items)"),
       },
       },

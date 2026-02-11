@@ -13,9 +13,9 @@ npm run build          # Compile TypeScript → build/ (required before running)
 npm run typecheck      # Type-check without emitting
 npm run lint           # ESLint
 npm run lint:fix       # ESLint with auto-fix
-npm test               # Run all tests (Node.js native test runner)
+npm test               # Run all tests (vitest)
 npm run test:watch     # Tests in watch mode
-node --test tests/echo.test.ts  # Run a single test file
+npx vitest run tests/tools/projects.test.ts  # Run a single test file
 npm run inspect        # Build + launch MCP Inspector (stdio)
 npm run inspect:http   # MCP Inspector against HTTP endpoint
 npm run dev            # Build + interactive JSON-RPC REPL
@@ -80,6 +80,7 @@ Each file is a domain module grouping related tools:
 - `branches.ts` — list/create/delete branches, list/create tags
 - `commits.ts` — list commits, get commit, commit changes, commit diff
 - `files.ts` — browse files, get file content, edit file, list files recursively
+- `build-status.ts` — build statuses per commit, build statistics
 
 ### Tool implementation pattern
 Every tool handler follows the same pattern:
@@ -92,10 +93,11 @@ Every tool handler follows the same pattern:
 Destructive operations check `getConfig().enableDangerous` before executing.
 
 ### Testing (`tests/`)
-- Uses Node.js native test runner (`node:test` + `node:assert`)
-- `tests/helpers/test-client.ts` provides `TestClient` class that spawns the built server as a child process via stdio transport
-- Existing tests are from the starter template and need updating for Bitbucket DC tools
-- Tests require `npm run build` first (they run the compiled JS)
+- Uses **Vitest** with `vi.mock()` for isolation — no build step required for unit tests
+- **Unit test pattern**: Each tool test uses `vi.mock("../../src/lib/client.js")` to stub the Axios client, registers handlers via `createFakeServer()`, then asserts on mock calls and return values
+- `tests/helpers/mock-client.ts` — `createMockAxiosClient()` for Axios stubs, `axiosResponse()` and `paginatedResponse()` for response shapes
+- `tests/helpers/fake-server.ts` — `createFakeServer()` captures tool handlers in a Map without a real MCP server
+- `tests/helpers/test-client.ts` — `TestClient` class for integration tests that spawn the built server via stdio (these require `npm run build` first)
 
 ## Adding a New Tool
 

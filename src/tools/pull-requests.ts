@@ -28,8 +28,8 @@ const pullRequestsModule: RegisterableModule = {
         state: z.enum(["OPEN", "MERGED", "DECLINED", "ALL"]).optional().describe("PR state filter"),
         direction: z.enum(["INCOMING", "OUTGOING"]).optional().describe("PR direction"),
         at: z.string().optional().describe("Branch to filter by (fully-qualified ref)"),
-        limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
-        start: z.number().optional().describe(DESC_START_INDEX),
+        limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
+        start: z.coerce.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
       },
       },
@@ -60,7 +60,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -136,7 +136,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         title: z.string().optional().describe("New title"),
         description: z.string().optional().describe("New description"),
       },
@@ -171,7 +171,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         message: z.string().optional().describe("Merge commit message"),
         strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional().describe("Merge strategy"),
       },
@@ -207,7 +207,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         message: z.string().optional().describe("Reason for declining"),
       },
       },
@@ -234,7 +234,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -259,7 +259,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -280,7 +280,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -301,7 +301,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         draft: z.boolean().describe("true to mark as draft, false to remove draft status"),
       },
       },
@@ -332,7 +332,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
       },
       },
       async (args) => {
@@ -353,7 +353,7 @@ const pullRequestsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         reviewers: z.array(z.string()).min(1).describe("Array of reviewer usernames to add"),
       },
       },

@@ -26,9 +26,9 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
-        start: z.number().optional().describe(DESC_START_INDEX),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
+        start: z.coerce.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().default(true).describe(DESC_FETCH_ALL_PAGES),
       },
       },
@@ -62,10 +62,10 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         text: z.string().describe("Task text"),
         anchorPath: z.string().optional().describe("File path for inline task"),
-        anchorLine: z.number().optional().describe("Line number"),
+        anchorLine: z.coerce.number().optional().describe("Line number"),
         anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM=old, TO=new file"),
       },
       },
@@ -103,9 +103,9 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe("Comment/task ID"),
-        version: z.number().describe(DESC_COMMENT_VERSION),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe("Comment/task ID"),
+        version: z.coerce.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -129,9 +129,9 @@ const prTasksModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe("Comment/task ID"),
-        version: z.number().describe(DESC_COMMENT_VERSION),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe("Comment/task ID"),
+        version: z.coerce.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {

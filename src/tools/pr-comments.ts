@@ -27,9 +27,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        limit: z.number().optional().describe(DESC_ITEMS_PER_PAGE),
-        start: z.number().optional().describe(DESC_START_INDEX),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
+        start: z.coerce.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
       },
       },
@@ -58,11 +58,11 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
         text: z.string().describe("Comment text"),
-        parentId: z.number().optional().describe("Parent comment ID for replies"),
+        parentId: z.coerce.number().optional().describe("Parent comment ID for replies"),
         anchorPath: z.string().optional().describe("File path for inline comment"),
-        anchorLine: z.number().optional().describe("Line number for inline comment"),
+        anchorLine: z.coerce.number().optional().describe("Line number for inline comment"),
         anchorLineType: z.enum(["ADDED", "REMOVED", "CONTEXT"]).optional().describe("Line type for inline comment"),
         anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM = old file, TO = new file"),
         severity: z.enum(["NORMAL", "BLOCKER"]).optional().describe("Comment severity (BLOCKER = task)"),
@@ -106,8 +106,8 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe(DESC_COMMENT_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe(DESC_COMMENT_ID),
       },
       },
       async (args) => {
@@ -130,10 +130,10 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe(DESC_COMMENT_ID),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe(DESC_COMMENT_ID),
         text: z.string().describe("Updated comment text"),
-        version: z.number().describe(DESC_COMMENT_VERSION),
+        version: z.coerce.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -157,9 +157,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
-        version: z.number().describe(DESC_COMMENT_VERSION),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
+        version: z.coerce.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -183,9 +183,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
-        version: z.number().describe(DESC_COMMENT_VERSION),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
+        version: z.coerce.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {
@@ -209,9 +209,9 @@ const prCommentsModule: RegisterableModule = {
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
-        prId: z.number().describe(DESC_PR_ID),
-        commentId: z.number().describe(DESC_COMMENT_ID),
-        version: z.number().describe(DESC_COMMENT_VERSION),
+        prId: z.coerce.number().describe(DESC_PR_ID),
+        commentId: z.coerce.number().describe(DESC_COMMENT_ID),
+        version: z.coerce.number().describe(DESC_COMMENT_VERSION),
       },
       },
       async (args) => {

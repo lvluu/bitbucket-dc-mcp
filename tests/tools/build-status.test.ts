@@ -4,8 +4,8 @@ import { createMockAxiosClient, axiosResponse, paginatedResponse } from "../help
 const mockAxios = createMockAxiosClient();
 vi.mock("../../src/lib/client.js", () => ({
   getClient: () => mockAxios,
-  getConfig: () => ({ enableDangerous: false }),
-  repoPath: (p: string, r: string) => `/projects/${p}/repos/${r}`,
+  getConfig: () => ({ baseUrl: "https://bitbucket.example.com/rest/api/1.0", enableDangerous: false }),
+  getOriginUrl: () => "https://bitbucket.example.com",
 }));
 
 import buildStatusModule from "../../src/tools/build-status.js";
@@ -33,11 +33,11 @@ describe("build-status tools", () => {
 
       const handler = toolHandlers.get("getBuildStatuses")!;
       const result = await handler({
-        projectKey: "PROJ", repoSlug: "repo", commitId: "abc123def456",
+        commitId: "abc123def456",
       }) as any;
 
       expect(mockAxios.get).toHaveBeenCalledWith(
-        "/projects/PROJ/repos/repo/commits/abc123def456/builds",
+        "https://bitbucket.example.com/rest/build-status/1.0/commits/abc123def456",
         expect.objectContaining({
           params: expect.objectContaining({ limit: 25 }),
         })
@@ -55,11 +55,11 @@ describe("build-status tools", () => {
 
       const handler = toolHandlers.get("getBuildStatuses")!;
       await handler({
-        projectKey: "PROJ", repoSlug: "repo", commitId: "abc123def456", key: "build-1",
+        commitId: "abc123def456", key: "build-1",
       });
 
       expect(mockAxios.get).toHaveBeenCalledWith(
-        "/projects/PROJ/repos/repo/commits/abc123def456/builds",
+        "https://bitbucket.example.com/rest/build-status/1.0/commits/abc123def456",
         expect.objectContaining({
           params: expect.objectContaining({ key: "build-1" }),
         })
@@ -71,7 +71,7 @@ describe("build-status tools", () => {
 
       const handler = toolHandlers.get("getBuildStatuses")!;
       const result = await handler({
-        projectKey: "PROJ", repoSlug: "repo", commitId: "abc123",
+        commitId: "abc123",
       }) as any;
 
       expect(result.isError).toBe(true);
@@ -89,7 +89,7 @@ describe("build-status tools", () => {
       const result = await handler({ commitId: "abc123def456" }) as any;
 
       expect(mockAxios.get).toHaveBeenCalledWith(
-        "/build-status/latest/commits/stats/abc123def456",
+        "https://bitbucket.example.com/rest/build-status/1.0/commits/stats/abc123def456",
         { params: {} }
       );
       const parsed = JSON.parse(result.content[0].text);
@@ -106,7 +106,7 @@ describe("build-status tools", () => {
       await handler({ commitId: "abc123", includeUnique: true });
 
       expect(mockAxios.get).toHaveBeenCalledWith(
-        "/build-status/latest/commits/stats/abc123",
+        "https://bitbucket.example.com/rest/build-status/1.0/commits/stats/abc123",
         { params: { includeUnique: true } }
       );
     });
