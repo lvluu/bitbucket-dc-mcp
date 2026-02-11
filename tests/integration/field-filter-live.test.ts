@@ -1,6 +1,9 @@
 /**
  * Integration test: verifies field-filter summarization against real Bitbucket DC.
- * READ-ONLY operations only — no creates, updates, deletes, or writes.
+ *
+ * ⚠️  SAFETY: This file MUST only use READ-ONLY operations (list*, get*).
+ *    NEVER add tests that call create, update, delete, merge, approve, fork,
+ *    or any other write/mutate operation against the real Bitbucket server.
  *
  * Requires: npm run build (uses stdio transport against built server)
  * Requires: .env with valid BITBUCKET_URL and BITBUCKET_TOKEN
