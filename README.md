@@ -62,7 +62,7 @@ npx @shibainu16/bitbucket-dc-mcp
 
 ## Prerequisites
 
-- Node.js >= 20.11.0
+- Node.js >= 22
 - A Bitbucket Data Center instance with API access
 - A personal access token or username/password credentials
 
