@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.1.0...v1.2.0) (2026-02-11)
+
+
+### Features
+
+* add PR review session tools with buffered comments ([73811e4](https://github.com/lvluu/bitbucket-dc-mcp/commit/73811e4009eb1be951f462a3496ede98943c1481))
+
+
+### Bug Fixes
+
+* use z.coerce.number() for MCP string-to-number coercion and fix build status API paths ([d2dc86b](https://github.com/lvluu/bitbucket-dc-mcp/commit/d2dc86ba605bc504c1cb8c72736101b5ee0694ab))
+
 ## [1.1.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.0.2...v1.1.0) (2026-02-11)
 
 
