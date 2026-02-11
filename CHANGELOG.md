@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.0.2...v1.1.0) (2026-02-11)
+
+
+### Features
+
+* add addPullRequestReviewers tool to assign reviewers to existing PRs ([6a227ee](https://github.com/lvluu/bitbucket-dc-mcp/commit/6a227ee868c94e219475b53c00c4ab4b4d9f41c0))
+* add build status tools and update README ([9486e75](https://github.com/lvluu/bitbucket-dc-mcp/commit/9486e75abe060a65f2362f60eb697f884777b94b))
+
 ## [1.0.1](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.0.0...v1.0.1) (2026-02-10)
 
 
