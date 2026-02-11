@@ -8,13 +8,40 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that ex
 
 ## Overview
 
-This server lets MCP-compatible clients (Claude Desktop, VS Code, IDEs, custom apps) interact with a Bitbucket Data Center instance — browsing projects, managing repositories, creating and reviewing pull requests, and more — through 48 tools.
+This server lets MCP-compatible clients (Claude Desktop, VS Code, IDEs, custom apps) interact with a Bitbucket Data Center instance through 55 tools covering:
+
+- **Projects** — list, get, create, update
+- **Repositories** — list, get, create, fork, default branch
+- **Pull Requests** — CRUD, merge, decline, reopen, approve, reviewers, can-merge
+- **PR Comments** — list, add, get, update, delete (inline + general)
+- **PR Diff & Changes** — diffs, file changes, conflict markers
+- **PR Activity** — activity feed, participants, watchers
+- **PR Tasks** — blocker comment tasks
+- **Branches & Tags** — list, create, delete
+- **Commits** — list, get, changes, diff
+- **Files** — browse, read, edit, recursive listing
+- **Build Status** — build statuses per commit, build statistics
 
 ```mermaid
 graph LR
     A[AI Client] <-->|MCP| B[bitbucket-dc-mcp]
     B <-->|REST API v1.0| C[Bitbucket Data Center]
 ```
+
+### Example Prompts
+
+Once connected, try asking your AI assistant:
+
+- "List all repositories in the PROJ project"
+- "Show me open pull requests in repo X"
+- "What changed in PR #42? Summarize the diff"
+- "Create a branch called feature/login from main in PROJ/my-repo"
+- "Add a comment on PR #15 suggesting a fix for the null check on line 23"
+- "What's the build status for the latest commit on main?"
+- "Show me the last 10 commits on the develop branch"
+- "Read the contents of src/index.ts from the main branch"
+- "Are there any unresolved tasks blocking PR #8 from merging?"
+- "Who approved PR #21 and what comments were left?"
 
 ## Installation
 
@@ -190,29 +217,7 @@ Or manually create/edit `.mcp.json` in your project root:
 }
 ```
 
-### Claude Desktop
-
-Add to your Claude Desktop configuration (`claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "bitbucket-dc-mcp": {
-      "command": "npx",
-      "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
-      "env": {
-        "BITBUCKET_URL": "https://bitbucket.example.com",
-        "BITBUCKET_TOKEN": "your-token",
-        "MCP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
 ## Development
-
-### From source
 
 ```bash
 git clone https://github.com/lvluu/bitbucket-dc-mcp.git
@@ -221,52 +226,7 @@ npm install
 npm run build
 ```
 
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `npm run build` | Compile TypeScript to `build/` |
-| `npm run typecheck` | Type-check without emitting |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Auto-fix ESLint issues |
-| `npm test` | Run all tests |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run inspect` | Build + launch MCP Inspector (stdio) |
-| `npm run inspect:http` | MCP Inspector against HTTP endpoint |
-| `npm run dev` | Build + interactive JSON-RPC REPL |
-| `npm run knip` | Find unused exports/dependencies |
-| `npm run gen:tool` | Generate a new tool module with test |
-
-### Testing with MCP Inspector
-
-```bash
-# Stdio mode
-npm run inspect
-
-# HTTP mode (start server first, then in another terminal)
-npm run inspect:http
-```
-
-The MCP Inspector provides an interactive UI to browse and test all registered tools.
-
-### Adding a New Tool
-
-1. Create `src/tools/my-domain.ts` (or add to an existing domain file)
-2. Export a default `RegisterableModule` that registers tools in its `register()` function
-3. The auto-loader discovers it automatically on next build
-4. Or use the generator: `npm run gen:tool`
-
-See existing files in `src/tools/` for examples.
-
-## Publishing
-
-Releases are fully automated via [release-please](https://github.com/googleapis/release-please) and GitHub Actions:
-
-1. Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `chore:`, etc.)
-2. On push to `main`, release-please automatically creates/updates a release PR with version bump and changelog
-3. When the release PR is merged, the workflow publishes to npm automatically
-
-Requires an `NPM_TOKEN` secret configured in the GitHub repository settings.
+See `CLAUDE.md` for the full list of commands, architecture details, and contribution guidance.
 
 ## Troubleshooting
 

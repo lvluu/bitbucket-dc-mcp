@@ -1,6 +1,6 @@
 {
   "name": "@shibainu16/bitbucket-dc-mcp",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "HTTP MCP server for Bitbucket Data Center REST API",
   "main": "build/index.js",
   "type": "module",
