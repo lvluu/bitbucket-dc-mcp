@@ -7,6 +7,14 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { TestClient } from "../helpers/test-client.js";
+import { config } from "dotenv";
+
+// Load .env so we can check for credentials
+config();
+
+const hasCredentials =
+  !!process.env.BITBUCKET_URL &&
+  (!!process.env.BITBUCKET_TOKEN || (!!process.env.BITBUCKET_USERNAME && !!process.env.BITBUCKET_PASSWORD));
 
 // Fields that should be stripped by summarizers
 const STRIPPED_FIELDS = ["links", "avatarUrl", "hierarchyId", "statusMessage"];
@@ -17,7 +25,7 @@ function parseToolResult(result: any): unknown {
   return JSON.parse(result.content[0].text);
 }
 
-describe("field-filter live integration (read-only)", () => {
+describe.skipIf(!hasCredentials)("field-filter live integration (read-only)", () => {
   const client = new TestClient();
 
   beforeAll(async () => {
