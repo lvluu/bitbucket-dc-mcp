@@ -4,6 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getClient, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage } from "#lib/pagination.js";
+import { summarizeCommit, summarizeArray } from "#lib/field-filter.js";
 
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -45,7 +46,8 @@ const commitsModule: RegisterableModule = {
             `${repoPath(args.projectKey, args.repoSlug)}/commits`,
             { limit: args.limit, start: args.start, all: args.all, params }
           );
-          return jsonResult(result.values);
+          const summaryValues = summarizeArray(result.values, summarizeCommit);
+          return jsonResult(summaryValues ?? []);
         } catch (error) {
           return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
         }

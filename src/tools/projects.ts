@@ -4,6 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getClient } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage } from "#lib/pagination.js";
+import { summarizeProject, summarizeArray } from "#lib/field-filter.js";
 
 const projectsModule: RegisterableModule = {
   type: "tool",
@@ -32,7 +33,8 @@ const projectsModule: RegisterableModule = {
             all: args.all,
             params,
           });
-          return jsonResult(result.values);
+          const summaryValues = summarizeArray(result.values, summarizeProject);
+          return jsonResult(summaryValues ?? []);
         } catch (error) {
           return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
         }

@@ -4,6 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getClient, repoPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage } from "#lib/pagination.js";
+import { summarizeBranch, summarizeArray } from "#lib/field-filter.js";
 
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -42,7 +43,8 @@ const branchesModule: RegisterableModule = {
             `${repoPath(args.projectKey, args.repoSlug)}/branches`,
             { limit: args.limit, start: args.start, all: args.all, params }
           );
-          return jsonResult(result.values);
+          const summaryValues = summarizeArray(result.values, summarizeBranch);
+          return jsonResult(summaryValues ?? []);
         } catch (error) {
           return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
         }
@@ -130,7 +132,8 @@ const branchesModule: RegisterableModule = {
             `${repoPath(args.projectKey, args.repoSlug)}/tags`,
             { limit: args.limit, start: args.start, all: args.all, params }
           );
-          return jsonResult(result.values);
+          const summaryValues = summarizeArray(result.values, summarizeBranch);
+          return jsonResult(summaryValues ?? []);
         } catch (error) {
           return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };
         }
