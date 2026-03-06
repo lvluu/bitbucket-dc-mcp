@@ -24,11 +24,12 @@ const prCommentsModule: RegisterableModule = {
     server.registerTool(
       "listPRComments",
       {
-        description: "List comments on a pull request (fetched from activities, filtered to comments)",
+        description: "List comments on a pull request. Defaults to UNRESOLVED only — most users care about open comments. Set state to ALL or RESOLVED to change.",
         inputSchema: {
         projectKey: z.string().describe(DESC_PROJECT_KEY),
         repoSlug: z.string().describe(DESC_REPO_SLUG),
         prId: z.coerce.number().describe(DESC_PR_ID),
+        state: z.enum(["UNRESOLVED", "RESOLVED", "ALL"]).optional().describe("Filter by resolved state (default: UNRESOLVED). Use ALL to include resolved comments."),
         limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
         start: z.coerce.number().optional().describe(DESC_START_INDEX),
         all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
@@ -42,9 +43,15 @@ const prCommentsModule: RegisterableModule = {
             `${prPath(args.projectKey, args.repoSlug, args.prId)}/activities`,
             { limit: args.limit, start: args.start, all: args.all }
           );
+          const state = args.state ?? "UNRESOLVED";
           const comments = result.values
             .filter((a) => a.action === "COMMENTED" && a.comment != null)
-            .map((a) => a.comment);
+            .map((a) => a.comment as Record<string, unknown>)
+            .filter((c) => {
+              if (state === "ALL") return true;
+              if (state === "RESOLVED") return c.threadResolved === true;
+              return c.threadResolved !== true; // UNRESOLVED: not resolved or no threadResolved property
+            });
           return jsonResult(comments);
         } catch (error) {
           return { content: [{ type: "text" as const, text: formatError(error) }], isError: true };

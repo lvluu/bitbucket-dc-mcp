@@ -27,18 +27,43 @@ describe("pr-comments tools", () => {
   });
 
   describe("listPRComments", () => {
-    it("should filter activities to comments", async () => {
-      mockAxios.get.mockResolvedValueOnce(paginatedResponse([
-        { action: "COMMENTED", comment: { id: 1, text: "hello" } },
-        { action: "APPROVED", comment: null },
-      ]));
+    const activities = [
+      { action: "COMMENTED", comment: { id: 1, text: "open comment", threadResolved: false } },
+      { action: "COMMENTED", comment: { id: 2, text: "resolved comment", threadResolved: true } },
+      { action: "COMMENTED", comment: { id: 3, text: "no resolved field" } },
+      { action: "APPROVED", comment: null },
+    ];
+
+    it("should default to UNRESOLVED comments only", async () => {
+      mockAxios.get.mockResolvedValueOnce(paginatedResponse(activities));
 
       const handler = toolHandlers.get("listPRComments")!;
       const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1 }) as any;
 
       const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toHaveLength(2);
+      expect(parsed.map((c: any) => c.id)).toEqual([1, 3]);
+    });
+
+    it("should return all comments when state=ALL", async () => {
+      mockAxios.get.mockResolvedValueOnce(paginatedResponse(activities));
+
+      const handler = toolHandlers.get("listPRComments")!;
+      const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1, state: "ALL" }) as any;
+
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed).toHaveLength(3);
+    });
+
+    it("should return only resolved comments when state=RESOLVED", async () => {
+      mockAxios.get.mockResolvedValueOnce(paginatedResponse(activities));
+
+      const handler = toolHandlers.get("listPRComments")!;
+      const result = await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 1, state: "RESOLVED" }) as any;
+
+      const parsed = JSON.parse(result.content[0].text);
       expect(parsed).toHaveLength(1);
-      expect(parsed[0].id).toBe(1);
+      expect(parsed[0].id).toBe(2);
     });
   });
 
