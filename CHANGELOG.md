@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.3.0...v1.4.0) (2026-03-06)
+
+
+### Features
+
+* default listPRComments to unresolved comments only ([98bf1e9](https://github.com/lvluu/bitbucket-dc-mcp/commit/98bf1e9ad6c26730a244f7c262f1b1547a8143f0))
+
 ## [1.3.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.2.0...v1.3.0) (2026-02-11)
 
 
