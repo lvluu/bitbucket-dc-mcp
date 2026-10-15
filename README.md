@@ -282,6 +282,13 @@ Agents and contributors: see `CLAUDE.md`.
 | `deleteBranch is disabled` | Set `BITBUCKET_ENABLE_DANGEROUS=true` to enable destructive operations |
 | Tools not loading | Verify module has a valid default export matching `RegisterableModule` |
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+commands, and the Conventional Commits/release workflow, and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations. Please
+report security issues privately per [SECURITY.md](SECURITY.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
