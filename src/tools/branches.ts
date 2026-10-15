@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getClient, repoPath } from "#lib/client.js";
+import { getClient, getOriginUrl, repoPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage } from "#lib/pagination.js";
 import { summarizeBranch, summarizeArray } from "#lib/field-filter.js";
@@ -76,8 +76,8 @@ const branchesModule = {
                     return { content: [{ type: "text", text: "deleteBranch is disabled. Set BITBUCKET_ENABLE_DANGEROUS=true." }], isError: true };
                 }
                 const client = getClient();
-                // DC uses branch-utils API for deletion
-                await client.delete(`/branch-utils/latest/projects/${args.projectKey}/repos/${args.repoSlug}/branches`, { data: { name: `refs/heads/${args.name}`, dryRun: args.dryRun ?? false } });
+                // branch-utils is a separate REST module, not under /rest/api/1.0
+                await client.delete(`${getOriginUrl()}/rest/branch-utils/latest/projects/${args.projectKey}/repos/${args.repoSlug}/branches`, { data: { name: `refs/heads/${args.name}`, dryRun: args.dryRun ?? false } });
                 return textResult(`Branch '${args.name}' deleted successfully.`);
             }
             catch (error) {

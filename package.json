@@ -7,6 +7,9 @@
   "scripts": {
     "test": "bun test src",
     "test:watch": "bun test --watch",
+    "test:e2e": "bun run build && bun test test/e2e",
+    "test:all": "bun run typecheck && bun test src && bun run build && bun test test/e2e",
+    "e2e:docker": "docker compose -f test/e2e/compose.yaml up -d --build && E2E_STUB_URL=http://127.0.0.1:7990 bun test test/e2e; docker compose -f test/e2e/compose.yaml down",
     "build": "tsc && chmod 755 build/index.js",
     "prepublishOnly": "bun run typecheck && bun test src && bun run build",
     "typecheck": "tsc --noEmit",

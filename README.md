@@ -234,6 +234,31 @@ bun install
 bun run build
 ```
 
+### Testing
+
+Unit tests (`src/**/*.test.ts`):
+
+```bash
+just test        # or: bun test src
+```
+
+End-to-end tests boot the built server and drive every tool through a real MCP
+client against a fake Bitbucket DC REST API (`test/e2e/stub-bitbucket.mjs`):
+
+```bash
+just e2e         # or: bun run test:e2e
+```
+
+Run the fake Bitbucket DC as a Docker container and test against it:
+
+```bash
+just e2e-docker  # or: bun run e2e:docker
+```
+
+The stub is a zero-dependency Node HTTP server (`test/e2e/`), so no license or
+large Atlassian image is needed. The e2e report is written to
+`test/e2e/.last-run.json`.
+
 Agents and contributors: see `CLAUDE.md`.
 
 ## Troubleshooting
