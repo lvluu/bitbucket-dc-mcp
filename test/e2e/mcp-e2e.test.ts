@@ -180,6 +180,10 @@ test("every Bitbucket DC tool works end to end", async () => {
 
     { name: "listRepositoryWebhooks", args: { projectKey: "PROJ", repoSlug: repo, all: true } },
 
+    { name: "enqueuePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
+    { name: "getMergeQueue", args: { projectKey: "PROJ", repoSlug: repo } },
+    { name: "processMergeQueue", args: { projectKey: "PROJ", repoSlug: repo, message: "merge queue commit", strategy: "squash" } },
+
     // last: mutates PR 1
     { name: "mergePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, message: "merge e2e", strategy: "squash" } },
   ];
