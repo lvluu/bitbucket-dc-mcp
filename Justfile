@@ -24,6 +24,8 @@ e2e:
 
 # Same e2e, but against the stub running as a Docker container.
 e2e-docker:
+    #!/usr/bin/env bash
+    set -euo pipefail
     docker compose -f test/e2e/compose.yaml up -d --build
+    trap 'docker compose -f test/e2e/compose.yaml down' EXIT
     E2E_STUB_URL=http://127.0.0.1:7990 bun test test/e2e
-    docker compose -f test/e2e/compose.yaml down

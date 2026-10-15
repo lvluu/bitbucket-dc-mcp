@@ -259,6 +259,17 @@ The stub is a zero-dependency Node HTTP server (`test/e2e/`), so no license or
 large Atlassian image is needed. The e2e report is written to
 `test/e2e/.last-run.json`.
 
+### Releasing
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please).
+On every push to `main`, release-please opens/updates a release PR containing a
+generated `CHANGELOG.md` and a version bump derived from
+[Conventional Commits](https://www.conventionalcommits.org/). Merging that PR
+tags the release and publishes to npm with provenance — no manual `npm publish`.
+
+One-time setup: add an npm automation token as the `NPM_TOKEN` repository secret
+(**Settings → Secrets and variables → Actions**).
+
 Agents and contributors: see `CLAUDE.md`.
 
 ## Troubleshooting
