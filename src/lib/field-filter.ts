@@ -138,6 +138,20 @@ export function summarizeProject(project: Loose): Loose {
     };
 }
 /**
+ * Creates a summary of a webhook with only essential fields.
+ */
+export function summarizeWebhook(webhook: Loose): Loose {
+    return {
+        id: webhook.id,
+        name: webhook.name,
+        url: webhook.url,
+        events: webhook.events,
+        active: webhook.active,
+        createdDate: webhook.createdDate,
+        updatedDate: webhook.updatedDate,
+    };
+}
+/**
  * Maps an array of items through a summarizer function.
  * Returns undefined if the array is empty.
  */

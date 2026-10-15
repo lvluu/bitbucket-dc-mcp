@@ -545,6 +545,22 @@ on("GET", /^\/rest\/build-status\/1\.0\/commits\/([^/]+)$/, (req, res, url) => {
   json(res, 200, paged(key ? all.filter((b) => b.key === key) : all, url));
 });
 
+// webhooks
+on("GET", /^\/rest\/webhooks\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/webhooks$/, (req, res, url, m) => {
+  const hooks = [
+    {
+      id: 1,
+      name: "CI webhook",
+      url: "https://ci.example.com/webhook",
+      events: ["repo:refs_changed"],
+      active: true,
+      createdDate: now,
+      updatedDate: now,
+    },
+  ];
+  json(res, 200, paged(hooks, url));
+});
+
 // ---- server ----------------------------------------------------------------
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://127.0.0.1:${PORT}`);
