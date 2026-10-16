@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.4.1...v1.5.0) (2026-10-16)
+
+
+### Features
+
+* add listRepositoryWebhooks tool ([#14](https://github.com/lvluu/bitbucket-dc-mcp/issues/14)) ([0cd8b8d](https://github.com/lvluu/bitbucket-dc-mcp/commit/0cd8b8dd2f3f9988efea9d296cec48d3e8f46897))
+* add per-repository merge queue tools ([#12](https://github.com/lvluu/bitbucket-dc-mcp/issues/12)) ([1cbfa09](https://github.com/lvluu/bitbucket-dc-mcp/commit/1cbfa09918c38afe6bae1e3d8f9e9161641e4f5d))
+
 ## [1.4.1](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.4.0...v1.4.1) (2026-10-15)
 
 
