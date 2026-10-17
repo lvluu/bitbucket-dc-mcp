@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.6.0...v1.6.1) (2026-10-17)
+
+
+### Bug Fixes
+
+* package.json bin path for npm publish ([5eea0ce](https://github.com/lvluu/bitbucket-dc-mcp/commit/5eea0ce4b1909682a0c05180c3711891ed6b8d22))
+
 ## [1.6.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.5.1...v1.6.0) (2026-10-17)
 
 
