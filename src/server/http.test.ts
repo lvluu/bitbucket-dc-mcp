@@ -177,22 +177,17 @@ test("sweep closes a session idle past the TTL and keeps a recently used one", a
     }
 });
 
-test("sweep keeps a stale session while its SSE stream is open, drops it once the client leaves", async () => {
+test("an open SSE stream does not keep an idle session alive", async () => {
     let t = 1_000;
     const app = await localApp({ idleTtlMs: 100, now: () => t });
     try {
-        // The SDK client holds a GET SSE stream open after initialize.
+        // The SDK client holds a GET SSE stream open after initialize and never sends DELETE here.
         const { client } = await connectTo(app.url);
         await Bun.sleep(100);
         t += 1_000;
         await app.http.sweep();
-        expect(app.http.sessionCount()).toBe(1);
-        // Disconnect without DELETE: the stream closes, the session is then idle.
-        await client.close();
-        await Bun.sleep(50);
-        t += 1_000;
-        await app.http.sweep();
         expect(app.http.sessionCount()).toBe(0);
+        await client.close();
     } finally {
         await app.stop();
     }

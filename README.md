@@ -150,7 +150,7 @@ Endpoints:
 - `DELETE /mcp` — Session termination
 - `GET /health` — Health check
 
-Each client gets its own MCP session (`mcp-session-id` header), so any number of clients can connect at once. Idle sessions expire (`MCP_SESSION_IDLE_TTL_MS`), and when `MCP_MAX_SESSIONS` is reached new `initialize` requests get 503 with `Retry-After`.
+Each client gets its own MCP session (`mcp-session-id` header), so any number of clients can connect at once. Sessions with no POST/DELETE for `MCP_SESSION_IDLE_TTL_MS` expire (an open SSE stream does not keep them alive; clients re-initialize on 404), and when `MCP_MAX_SESSIONS` is reached new `initialize` requests get 503 with `Retry-After`.
 
 ### Stdio Mode
 

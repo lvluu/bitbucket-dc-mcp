@@ -111,9 +111,17 @@ export function createHttpApp(createServer: () => Promise<McpServer>, corsOrigin
                 sendJsonRpcError(res, 404, -32001, "Session not found");
                 return;
             }
-            session.inFlight++;
+            // A GET is a long-lived SSE stream a vanished client can leave half-open forever, so it
+            // must not pin the session: only POST/DELETE count as in flight.
+            const tracked = req.method !== "GET";
+            session.lastSeen = now();
+            if (tracked) {
+                session.inFlight++;
+            }
             res.once("close", () => {
-                session.inFlight--;
+                if (tracked) {
+                    session.inFlight--;
+                }
                 session.lastSeen = now();
             });
             await session.transport.handleRequest(req, res, req.body);
