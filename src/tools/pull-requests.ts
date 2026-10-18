@@ -344,7 +344,7 @@ const pullRequestsModule = {
                 };
                 if (errors.length > 0 && results.length === 0) {
                     // All failed
-                    return { content: [{ type: "text", text: JSON.stringify(summary, null, 2) }], isError: true };
+                    return { ...jsonResult(summary), isError: true };
                 }
                 return jsonResult(summary);
             }
