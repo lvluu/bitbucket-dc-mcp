@@ -39,10 +39,10 @@ describe("findModuleFiles", () => {
         expect(names).toEqual(["tools/a.ts"]);
     });
 
-    test("discovers every tool module under src", async () => {
-        const srcRoot = getRootDir(import.meta.url);
-        const files = await findModuleFiles(srcRoot);
+    test("discovers the real tool modules next to this file (src/ under bun, build/ after tsc)", async () => {
+        const ext = path.extname(new URL(import.meta.url).pathname);
+        const files = await findModuleFiles(getRootDir(import.meta.url));
         expect(files.length).toBeGreaterThan(0);
-        expect(files.every(f => f.endsWith(".ts") && !f.endsWith(".test.ts"))).toBe(true);
+        expect(files.every(f => path.extname(f) === ext && !f.includes(".test."))).toBe(true);
     });
 });
