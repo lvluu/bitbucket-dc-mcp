@@ -56,7 +56,7 @@ const commitsModule = {
         }, async (args) => {
             try {
                 const client = getClient();
-                const response = await client.get(`${repoPath(args.projectKey, args.repoSlug)}/commits/${args.commitId}`);
+                const response = await client.get(`${repoPath(args.projectKey, args.repoSlug)}/commits/${encodeURIComponent(args.commitId)}`);
                 return jsonResult(response.data);
             }
             catch (error) {
@@ -76,7 +76,7 @@ const commitsModule = {
         }, async (args) => {
             try {
                 const client = getClient();
-                const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/commits/${args.commitId}/changes`, { limit: args.limit, start: args.start, all: args.all });
+                const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/commits/${encodeURIComponent(args.commitId)}/changes`, { limit: args.limit, start: args.start, all: args.all });
                 return jsonResult(result.values);
             }
             catch (error) {
