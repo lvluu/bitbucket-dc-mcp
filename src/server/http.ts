@@ -53,11 +53,14 @@ export function createHttpApp(createServer: () => Promise<McpServer>, corsOrigin
                 sessions.delete(transport.sessionId);
             }
         };
-        await server.connect(transport);
-        await transport.handleRequest(req, res, req.body);
-        // Initialization rejected (bad request): nothing registered, release the pair.
-        if (transport.sessionId === undefined) {
-            await server.close();
+        try {
+            await server.connect(transport);
+            await transport.handleRequest(req, res, req.body);
+        } finally {
+            // Initialization rejected or failed: nothing registered, release the pair.
+            if (transport.sessionId === undefined) {
+                await server.close();
+            }
         }
     }
 

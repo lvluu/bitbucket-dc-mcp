@@ -34,6 +34,7 @@ async function connect(): Promise<{ client: Client; transport: StreamableHTTPCli
 }
 
 test("serves several clients, each with its own session", async () => {
+    const before = http.sessionCount();
     const a = await connect();
     const b = await connect();
     expect(a.transport.sessionId).toBeDefined();
@@ -45,7 +46,7 @@ test("serves several clients, each with its own session", async () => {
     ]);
     expect(ra.content).toEqual([{ type: "text", text: "pong" }]);
     expect(rb.content).toEqual([{ type: "text", text: "pong" }]);
-    expect(http.sessionCount()).toBeGreaterThanOrEqual(2);
+    expect(http.sessionCount()).toBe(before + 2);
     await a.transport.terminateSession();
     await a.client.close();
     await b.transport.terminateSession();
@@ -66,6 +67,17 @@ test("drops a session on DELETE and rejects its id afterwards", async () => {
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
     });
     expect(res.status).toBe(404);
+});
+
+test("does not keep a session when initialize is rejected", async () => {
+    const before = http.sessionCount();
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "x", version: "0" } } }),
+    });
+    expect(res.status).toBe(406);
+    expect(http.sessionCount()).toBe(before);
 });
 
 test("rejects a non-initialize request without a session id", async () => {
