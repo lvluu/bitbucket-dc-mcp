@@ -22,6 +22,9 @@ function formatMessage(msg: unknown): string {
 }
 export function formatError(error: unknown): string {
     if (axios.isAxiosError(error)) {
+        if (error.response === undefined && (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT")) {
+            return `Bitbucket API error: ${error.message} (raise BITBUCKET_TIMEOUT_MS to wait longer)`;
+        }
         const msg = extractAxiosErrorMessage(error);
         const status = formatHttpStatus(error.response?.status);
         return `Bitbucket API error${status}: ${formatMessage(msg)}`;
