@@ -87,7 +87,7 @@ const prReviewModule = {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
                 const pendingComments = clearReviewSession(key);
-                if (pendingComments.length === 0) {
+                if (pendingComments.length === 0 && args.reviewStatus === undefined) {
                     return textResult("Review session finished with no pending comments.");
                 }
                 const client = getClient();
@@ -104,16 +104,10 @@ const prReviewModule = {
                     failed,
                     reviewStatus: reviewStatusResult,
                 };
-                if (failed.length > 0 && succeeded.length === 0) {
-                    return {
-                        content: [
-                            {
-                                type: "text",
-                                text: JSON.stringify(summary, null, 2),
-                            },
-                        ],
-                        isError: true,
-                    };
+                const allCommentsFailed = failed.length > 0 && succeeded.length === 0;
+                const statusOnlyFailed = pendingComments.length === 0 && reviewStatusResult?.success === false;
+                if (allCommentsFailed || statusOnlyFailed) {
+                    return { ...jsonResult(summary), isError: true };
                 }
                 return jsonResult(summary);
             }
