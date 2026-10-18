@@ -18,7 +18,7 @@ This server lets MCP-compatible clients (Claude Desktop, VS Code, IDEs, custom a
 - **PR Activity** — activity feed, participants, watchers
 - **PR Tasks** — blocker comment tasks
 - **Branches & Tags** — list, create, delete
-- **Commits** — list, get, changes, diff
+- **Commits** — list, get, changes, diff (whole commit or one file via `path`)
 - **Files** — browse, read, edit, recursive listing
 - **Build Status** — build statuses per commit, build statistics
 - **Merge Queue** — enqueue, view, and process per-repository merge queues

@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getClient, repoPath } from "#lib/client.js";
+import { commitDiffPath, getClient, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage } from "#lib/pagination.js";
 import { summarizeCommit, summarizeArray } from "#lib/field-filter.js";
@@ -84,11 +84,12 @@ const commitsModule = {
             }
         });
         server.registerTool("getCommitDiff", {
-            description: "Get the diff for a specific commit",
+            description: "Get the diff for a specific commit (whole commit, or one file when path is given)",
             inputSchema: {
                 projectKey: z.string().describe(DESC_PROJECT_KEY),
                 repoSlug: z.string().describe(DESC_REPO_SLUG),
                 commitId: z.string().describe(DESC_COMMIT_HASH),
+                path: z.string().optional().describe("File path to diff; omit for the whole commit"),
                 contextLines: z.coerce.number().optional().describe("Number of context lines"),
             },
         }, async (args) => {
@@ -97,7 +98,7 @@ const commitsModule = {
                 const params: Record<string, unknown> = {};
                 if (args.contextLines !== undefined)
                     params.contextLines = args.contextLines;
-                const response = await client.get(`${repoPath(args.projectKey, args.repoSlug)}/commits/${args.commitId}/diff`, { params });
+                const response = await client.get(commitDiffPath(args.projectKey, args.repoSlug, args.commitId, args.path), { params });
                 return jsonResult(response.data);
             }
             catch (error) {

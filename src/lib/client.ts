@@ -35,6 +35,16 @@ export function getOriginUrl(): string {
 export function repoPath(projectKey: string, repoSlug: string): string {
     return `/projects/${projectKey}/repos/${repoSlug}`;
 }
+/** URL-encode each segment of a repository file path, keeping the "/" separators */
+export function encodePath(path: string): string {
+    return path.split("/").filter((segment) => segment !== "").map(encodeURIComponent).join("/");
+}
+/** Build the DC API path for a commit diff: whole commit, or a single file when `path` is given */
+export function commitDiffPath(projectKey: string, repoSlug: string, commitId: string, path?: string): string {
+    const base = `${repoPath(projectKey, repoSlug)}/commits/${commitId}/diff`;
+    const filePath = path ? encodePath(path) : "";
+    return filePath !== "" ? `${base}/${filePath}` : base;
+}
 /** Build the DC API path for a pull request */
 export function prPath(projectKey: string, repoSlug: string, prId: number | string): string {
     return `${repoPath(projectKey, repoSlug)}/pull-requests/${String(prId)}`;

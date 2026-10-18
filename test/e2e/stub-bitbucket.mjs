@@ -503,8 +503,10 @@ on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits$/, (re
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)\/changes$/, (req, res, url) => {
   json(res, 200, paged([{ path: { toString: "src/index.ts" }, srcPath: { toString: "src/index.ts" }, type: "MODIFY" }], url));
 });
-on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)\/diff$/, (req, res, url, m) => {
-  json(res, 200, { diffs: [{ source: { toString: "index.ts" }, destination: { toString: "index.ts" }, hunks: [], truncated: false }], commit: m[3] });
+// GET .../commits/{commitId}/diff/{path}: {path} is optional (whole commit when omitted)
+on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)\/diff(?:\/(.+))?$/, (req, res, url, m) => {
+  const file = m[4] ? decodeURIComponent(m[4]) : "index.ts";
+  json(res, 200, { diffs: [{ source: { toString: file }, destination: { toString: file }, hunks: [], truncated: false }], commit: m[3], path: m[4] ? file : null });
 });
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)$/, (req, res, url, m) => {
   const c = COMMITS.find((x) => x.id === m[3] || x.displayId === m[3]);

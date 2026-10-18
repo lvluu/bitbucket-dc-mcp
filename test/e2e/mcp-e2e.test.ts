@@ -140,6 +140,7 @@ test("every Bitbucket DC tool works end to end", async () => {
     { name: "getCommit", args: { projectKey: "PROJ", repoSlug: repo, commitId } },
     { name: "getCommitChanges", args: { projectKey: "PROJ", repoSlug: repo, commitId } },
     { name: "getCommitDiff", args: { projectKey: "PROJ", repoSlug: repo, commitId, contextLines: 2 } },
+    { name: "getCommitDiff", args: { projectKey: "PROJ", repoSlug: repo, commitId, path: "src/my file.ts" } },
 
     { name: "browseFiles", args: { projectKey: "PROJ", repoSlug: repo, path: "src" } },
     { name: "getFileContent", args: { projectKey: "PROJ", repoSlug: repo, path: "README.md" } },
@@ -222,6 +223,12 @@ test("every Bitbucket DC tool works end to end", async () => {
   expect(sampleText).not.toContain('"links"');
   expect(sampleText).not.toContain("avatarUrl");
   expect(typeof listProjects?.bytes).toBe("number");
+
+  // getCommitDiff with a path must hit .../diff/{path}; the stub echoes the decoded path.
+  const fileDiff = (await client.callTool({ name: "getCommitDiff", arguments: { projectKey: "PROJ", repoSlug: repo, commitId, path: "src/my file.ts" } })) as {
+    content: { text: string }[];
+  };
+  expect(fileDiff.content[0]?.text ?? "").toContain('"path":"src/my file.ts"');
 
   await client.close();
 
