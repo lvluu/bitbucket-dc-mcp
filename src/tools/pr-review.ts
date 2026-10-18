@@ -73,7 +73,7 @@ const prReviewModule = {
             }
         });
         server.registerTool("finishReview", {
-            description: "Finish a review session: publish all buffered comments and optionally set approval status. Comments are posted sequentially. Partial failures are reported in the result.",
+            description: "Finish a review session: publish all buffered comments and optionally set approval status. Comments are posted sequentially. Partial failures are reported in the result. The status change is skipped if every buffered comment failed.",
             inputSchema: {
                 projectKey: z.string().describe(DESC_PROJECT_KEY),
                 repoSlug: z.string().describe(DESC_REPO_SLUG),
@@ -93,9 +93,13 @@ const prReviewModule = {
                 const client = getClient();
                 const basePath = prPath(args.projectKey, args.repoSlug, args.prId);
                 const { succeeded, failed } = await postPendingComments(client, basePath, pendingComments);
-                const reviewStatusResult = args.reviewStatus !== undefined
-                    ? await setReviewStatus(client, basePath, args.reviewStatus)
-                    : undefined;
+                const allCommentsFailed = failed.length > 0 && succeeded.length === 0;
+                // Never approve (or un-approve) a PR when none of the review's comments were published.
+                const reviewStatusResult = args.reviewStatus === undefined
+                    ? undefined
+                    : allCommentsFailed
+                        ? { skipped: true }
+                        : await setReviewStatus(client, basePath, args.reviewStatus);
                 const summary = {
                     totalComments: pendingComments.length,
                     successfulComments: succeeded.length,
@@ -104,8 +108,7 @@ const prReviewModule = {
                     failed,
                     reviewStatus: reviewStatusResult,
                 };
-                const allCommentsFailed = failed.length > 0 && succeeded.length === 0;
-                const statusOnlyFailed = pendingComments.length === 0 && reviewStatusResult?.success === false;
+                const statusOnlyFailed = pendingComments.length === 0 && reviewStatusResult !== undefined && "success" in reviewStatusResult && !reviewStatusResult.success;
                 if (allCommentsFailed || statusOnlyFailed) {
                     return { ...jsonResult(summary), isError: true };
                 }

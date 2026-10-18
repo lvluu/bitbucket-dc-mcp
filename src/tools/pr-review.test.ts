@@ -96,4 +96,27 @@ describe("finishReview", () => {
         expect(text(result)).not.toContain("\n");
         expect(JSON.parse(text(result))).toMatchObject({ failedComments: 1 });
     });
+
+    test("skips the status change when every buffered comment fails", async () => {
+        const key = reviewKey("PROJ", "repo", 7);
+        startReviewSession(key);
+        addPendingComment(key, { text: "nit" });
+        const { postMock } = stubHttp(() => Promise.reject(new Error("down")));
+        const result = await finish({ reviewStatus: "APPROVED" });
+        expect(postMock.mock.calls.map((c) => c[0])).toEqual([`${BASE}/comments`]);
+        expect(result.isError).toBe(true);
+        expect(JSON.parse(text(result))).toMatchObject({ failedComments: 1, reviewStatus: { skipped: true } });
+    });
+
+    test("still sets the status when only some comments fail", async () => {
+        const key = reviewKey("PROJ", "repo", 7);
+        startReviewSession(key);
+        addPendingComment(key, { text: "a" });
+        addPendingComment(key, { text: "b" });
+        let n = 0;
+        const { postMock } = stubHttp((url) => (url.endsWith("/comments") && n++ === 0 ? Promise.reject(new Error("x")) : Promise.resolve({ data: {} })));
+        const result = await finish({ reviewStatus: "APPROVED" });
+        expect(postMock.mock.calls.map((c) => c[0]).at(-1)).toBe(`${BASE}/approve`);
+        expect(JSON.parse(text(result))).toMatchObject({ successfulComments: 1, failedComments: 1, reviewStatus: { success: true } });
+    });
 });
