@@ -12,6 +12,7 @@ export function initClient(cfg: BitbucketConfig): void {
             Accept: "application/json",
         },
         auth: getBasicAuth(cfg),
+        timeout: cfg.timeoutMs,
     });
 }
 export function getClient(): AxiosInstance {

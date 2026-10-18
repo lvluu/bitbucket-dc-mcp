@@ -11,7 +11,7 @@ const BASE = "/projects/PROJ/repos/repo/pull-requests/7";
 const ARGS = { projectKey: "PROJ", repoSlug: "repo", prId: 7 };
 
 beforeAll(() => {
-    initClient({ baseUrl: "http://bitbucket.invalid/rest/api/latest", token: "t", username: undefined, password: undefined, defaultProject: undefined, enableDangerous: false });
+    initClient({ baseUrl: "http://bitbucket.invalid/rest/api/latest", token: "t", username: undefined, password: undefined, defaultProject: undefined, enableDangerous: false, timeoutMs: 30_000 });
     const fakeServer = {
         registerTool: (name: string, _config: unknown, handler: Handler) => handlers.set(name, handler),
     } as unknown as McpServer;

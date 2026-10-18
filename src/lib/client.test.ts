@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { commitDiffPath, encodePath } from "./client.js";
+import { commitDiffPath, encodePath, getClient, initClient } from "./client.js";
 
 describe("encodePath", () => {
     test("keeps slashes between segments and encodes each segment", () => {
@@ -23,5 +23,12 @@ describe("commitDiffPath", () => {
     });
     test("appends the encoded {path} segment for a single file", () => {
         expect(commitDiffPath("PROJ", "repo", "abc123", "src/my file.ts")).toBe("/projects/PROJ/repos/repo/commits/abc123/diff/src/my%20file.ts");
+    });
+});
+
+describe("initClient timeout", () => {
+    test("applies the configured timeout to the axios instance", () => {
+        initClient({ baseUrl: "http://bitbucket.invalid/rest/api/1.0", token: "t", username: undefined, password: undefined, defaultProject: undefined, enableDangerous: false, timeoutMs: 1234 });
+        expect(getClient().defaults.timeout).toBe(1234);
     });
 });

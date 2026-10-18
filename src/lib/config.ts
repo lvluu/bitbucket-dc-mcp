@@ -5,6 +5,7 @@ export interface BitbucketConfig {
     password: string | undefined;
     defaultProject: string | undefined;
     enableDangerous: boolean;
+    timeoutMs: number;
 }
 /** Path before the first `/rest` segment, i.e. the reverse-proxy context path ("" or e.g. "/bitbucket"). */
 function contextPath(pathname: string): string {
@@ -36,6 +37,19 @@ function isTruthy(value: string | undefined): boolean {
         return false;
     return ["1", "true", "yes", "on"].includes(value.toLowerCase());
 }
+export const DEFAULT_TIMEOUT_MS = 30_000;
+
+/** Parse BITBUCKET_TIMEOUT_MS: a positive integer (ms); unset/empty uses the default, anything else throws. */
+export function parseTimeoutMs(raw: string | undefined): number {
+    if (raw === undefined || raw === '')
+        return DEFAULT_TIMEOUT_MS;
+    const value = Number(raw);
+    if (!Number.isInteger(value) || value <= 0) {
+        throw new Error(`BITBUCKET_TIMEOUT_MS must be a positive integer (milliseconds), got "${raw}"`);
+    }
+    return value;
+}
+
 export function loadConfig(): BitbucketConfig {
     const rawUrl = process.env.BITBUCKET_URL;
     if (rawUrl === undefined || rawUrl === '') {
@@ -54,6 +68,7 @@ export function loadConfig(): BitbucketConfig {
         password,
         defaultProject: process.env.BITBUCKET_DEFAULT_PROJECT,
         enableDangerous: isTruthy(process.env.BITBUCKET_ENABLE_DANGEROUS),
+        timeoutMs: parseTimeoutMs(process.env.BITBUCKET_TIMEOUT_MS),
     };
 }
 export function getAuthHeaders(config: BitbucketConfig): Record<string, string> {

@@ -117,6 +117,7 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 | `BITBUCKET_PASSWORD` | Yes* | Password for basic auth | — |
 | `BITBUCKET_DEFAULT_PROJECT` | No | Default project key for tools that accept `projectKey` | — |
 | `BITBUCKET_ENABLE_DANGEROUS` | No | Enable destructive operations (`deletePRComment`, `deleteBranch`) | `false` |
+| `BITBUCKET_TIMEOUT_MS` | No | Per-request timeout in milliseconds; a request exceeding it fails instead of hanging | `30000` |
 | `BITBUCKET_VERBOSE` | No | Disable the token squeeze (pretty JSON, no field stripping, no text cap) | `false` |
 | `BITBUCKET_MAX_CHARS` | No | Cap per text result (diffs, patches, raw files); appends a truncation note | `60000` |
 | `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `http` |
