@@ -32,7 +32,7 @@ const repositoriesModule = {
                 const params: Record<string, unknown> = {};
                 if (args.name !== undefined)
                     params.name = args.name;
-                const result = await fetchPage(client, `/projects/${project}/repos`, {
+                const result = await fetchPage(client, `/projects/${encodeURIComponent(project)}/repos`, {
                     limit: args.limit,
                     start: args.start,
                     all: args.all,
@@ -73,7 +73,7 @@ const repositoriesModule = {
         }, async (args) => {
             try {
                 const client = getClient();
-                const response = await client.post(`/projects/${args.projectKey}/repos`, {
+                const response = await client.post(`/projects/${encodeURIComponent(args.projectKey)}/repos`, {
                     name: args.name,
                     scmId: args.scmId,
                     forkable: args.forkable,

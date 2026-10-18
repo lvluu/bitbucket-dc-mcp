@@ -44,7 +44,7 @@ const projectsModule = {
         }, async (args) => {
             try {
                 const client = getClient();
-                const response = await client.get(`/projects/${args.projectKey}`);
+                const response = await client.get(`/projects/${encodeURIComponent(args.projectKey)}`);
                 return jsonResult(response.data);
             }
             catch (error) {
@@ -87,7 +87,7 @@ const projectsModule = {
                     data.name = args.name;
                 if (args.description !== undefined)
                     data.description = args.description;
-                const response = await client.put(`/projects/${args.projectKey}`, data);
+                const response = await client.put(`/projects/${encodeURIComponent(args.projectKey)}`, data);
                 return jsonResult(response.data);
             }
             catch (error) {

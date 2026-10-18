@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { commitDiffPath, encodePath, getClient, initClient } from "./client.js";
+import { commitDiffPath, encodePath, getClient, initClient, repoPath } from "./client.js";
 
 describe("encodePath", () => {
     test("keeps slashes between segments and encodes each segment", () => {
@@ -30,5 +30,11 @@ describe("initClient timeout", () => {
     test("applies the configured timeout to the axios instance", () => {
         initClient({ baseUrl: "http://bitbucket.invalid/rest/api/1.0", token: "t", username: undefined, password: undefined, defaultProject: undefined, enableDangerous: false, timeoutMs: 1234 });
         expect(getClient().defaults.timeout).toBe(1234);
+    });
+});
+
+describe("repoPath", () => {
+    test("encodes project key and repo slug", () => {
+        expect(repoPath("~user", "re/po?")).toBe("/projects/~user/repos/re%2Fpo%3F");
     });
 });

@@ -9,7 +9,7 @@ const DESC_START_INDEX = "Start index";
 const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 /** Build-status REST API lives under /rest/build-status/1.0, not /rest/api/1.0 */
 function buildStatusPath(commitId: string): string {
-    return `${getOriginUrl()}/rest/build-status/1.0/commits/${commitId}`;
+    return `${getOriginUrl()}/rest/build-status/1.0/commits/${encodeURIComponent(commitId)}`;
 }
 const buildStatusModule = {
     type: "tool",
@@ -56,7 +56,7 @@ const buildStatusModule = {
                 const params: Record<string, unknown> = {};
                 if (args.includeUnique !== undefined)
                     params.includeUnique = args.includeUnique;
-                const response = await client.get(`${getOriginUrl()}/rest/build-status/1.0/commits/stats/${args.commitId}`, { params });
+                const response = await client.get(`${getOriginUrl()}/rest/build-status/1.0/commits/stats/${encodeURIComponent(args.commitId)}`, { params });
                 return jsonResult(response.data);
             }
             catch (error) {
