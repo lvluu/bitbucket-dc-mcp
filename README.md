@@ -122,6 +122,8 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 | `BITBUCKET_MAX_CHARS` | No | Cap per text result (diffs, patches, raw files); appends a truncation note | `60000` |
 | `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `http` |
 | `PORT` | No | HTTP server port | `3000` |
+| `MCP_SESSION_IDLE_TTL_MS` | No | HTTP mode: close an MCP session after this many ms without requests (swept every minute) | `1800000` |
+| `MCP_MAX_SESSIONS` | No | HTTP mode: max concurrent MCP sessions; further `initialize` requests get 503 | `100` |
 | `CORS_ORIGIN` | No | CORS allowed origins, comma-separated; credentials are only allowed when this is not `*` | `*` |
 
 \* Either `BITBUCKET_TOKEN` or both `BITBUCKET_USERNAME` + `BITBUCKET_PASSWORD` are required.
@@ -148,7 +150,7 @@ Endpoints:
 - `DELETE /mcp` — Session termination
 - `GET /health` — Health check
 
-Each client gets its own MCP session (`mcp-session-id` header), so any number of clients can connect at once.
+Each client gets its own MCP session (`mcp-session-id` header), so any number of clients can connect at once. Idle sessions expire (`MCP_SESSION_IDLE_TTL_MS`), and when `MCP_MAX_SESSIONS` is reached new `initialize` requests get 503 with `Retry-After`.
 
 ### Stdio Mode
 

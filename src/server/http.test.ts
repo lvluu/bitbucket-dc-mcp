@@ -4,7 +4,7 @@ import { afterAll, beforeAll, expect, test } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createHttpApp, type HttpApp } from "./http.js";
+import { createHttpApp, positiveInt, type HttpApp, type HttpOptions } from "./http.js";
 
 let http: HttpApp;
 let listener: Server;
@@ -114,4 +114,130 @@ test("listed CORS origin is echoed with credentials; unlisted gets no ACAO", asy
     expect(ok.headers.get("access-control-allow-credentials")).toBe("true");
     const no = await corsResponse("https://a.example", "https://evil.example");
     expect(no.headers.get("access-control-allow-origin")).toBeNull();
+});
+
+interface Local { http: HttpApp; url: URL; stop: () => Promise<void>; }
+
+async function localApp(options: HttpOptions): Promise<Local> {
+    const http = createHttpApp(() => {
+        const server = new McpServer({ name: "t", version: "0" });
+        server.registerTool("ping", { description: "ping" }, () => ({ content: [{ type: "text", text: "pong" }] }));
+        return Promise.resolve(server);
+    }, "*", options);
+    const srv = http.app.listen(0, "127.0.0.1");
+    await new Promise<void>(resolve => srv.once("listening", () => { resolve(); }));
+    const u = new URL(`http://127.0.0.1:${String((srv.address() as AddressInfo).port)}/mcp`);
+    return { http, url: u, stop: async () => { await http.close(); srv.close(); } };
+}
+
+async function connectTo(u: URL): Promise<{ client: Client; transport: StreamableHTTPClientTransport }> {
+    const client = new Client({ name: "c", version: "0" });
+    const transport = new StreamableHTTPClientTransport(u);
+    await client.connect(transport);
+    return { client, transport };
+}
+
+function listTools(u: URL, sessionId: string): Promise<Response> {
+    return fetch(u, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream", "mcp-session-id": sessionId },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    });
+}
+
+function initialize(u: URL): Promise<Response> {
+    return fetch(u, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "x", version: "0" } } }),
+    });
+}
+
+async function rawSession(u: URL): Promise<string> {
+    const res = await initialize(u);
+    expect(res.status).toBe(200);
+    await res.text();
+    return res.headers.get("mcp-session-id") as string;
+}
+
+test("sweep closes a session idle past the TTL and keeps a recently used one", async () => {
+    let t = 1_000;
+    const app = await localApp({ idleTtlMs: 100, now: () => t });
+    try {
+        const idle = await rawSession(app.url);
+        t += 80;
+        const active = await rawSession(app.url);
+        t += 50; // idle: 130 old, active: 50 old
+        await app.http.sweep();
+        expect(app.http.sessionCount()).toBe(1);
+        expect((await listTools(app.url, idle)).status).toBe(404);
+        expect((await listTools(app.url, active)).status).toBe(200);
+    } finally {
+        await app.stop();
+    }
+});
+
+test("sweep keeps a stale session while its SSE stream is open, drops it once the client leaves", async () => {
+    let t = 1_000;
+    const app = await localApp({ idleTtlMs: 100, now: () => t });
+    try {
+        // The SDK client holds a GET SSE stream open after initialize.
+        const { client } = await connectTo(app.url);
+        await Bun.sleep(100);
+        t += 1_000;
+        await app.http.sweep();
+        expect(app.http.sessionCount()).toBe(1);
+        // Disconnect without DELETE: the stream closes, the session is then idle.
+        await client.close();
+        await Bun.sleep(50);
+        t += 1_000;
+        await app.http.sweep();
+        expect(app.http.sessionCount()).toBe(0);
+    } finally {
+        await app.stop();
+    }
+});
+
+test("answers 503 when the session cap is reached and recovers after DELETE", async () => {
+    const app = await localApp({ maxSessions: 1 });
+    try {
+        const first = await connectTo(app.url);
+        const full = await initialize(app.url);
+        expect(full.status).toBe(503);
+        expect(full.headers.get("retry-after")).not.toBeNull();
+        await first.transport.terminateSession();
+        await first.client.close();
+        const second = await connectTo(app.url);
+        expect(second.transport.sessionId).toBeDefined();
+        await second.transport.terminateSession();
+        await second.client.close();
+    } finally {
+        await app.stop();
+    }
+});
+
+test("a rejected initialize does not leak a slot under the cap", async () => {
+    const app = await localApp({ maxSessions: 1 });
+    try {
+        const bad = await fetch(app.url, {
+            method: "POST",
+            headers: { "content-type": "application/json", accept: "application/json" },
+            body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "x", version: "0" } } }),
+        });
+        expect(bad.status).toBe(406);
+        const ok = await connectTo(app.url);
+        expect(ok.transport.sessionId).toBeDefined();
+        await ok.transport.terminateSession();
+        await ok.client.close();
+    } finally {
+        await app.stop();
+    }
+});
+
+test("positiveInt falls back on unset, non-numeric and non-positive values", () => {
+    expect(positiveInt(undefined, 5)).toBe(5);
+    expect(positiveInt("abc", 5)).toBe(5);
+    expect(positiveInt("0", 5)).toBe(5);
+    expect(positiveInt("-3", 5)).toBe(5);
+    expect(positiveInt("7", 5)).toBe(7);
 });
