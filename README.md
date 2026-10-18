@@ -147,6 +147,8 @@ Endpoints:
 - `DELETE /mcp` — Session termination
 - `GET /health` — Health check
 
+Each client gets its own MCP session (`mcp-session-id` header), so any number of clients can connect at once.
+
 ### Stdio Mode
 
 Traditional stdio transport for local clients like Claude Desktop:
