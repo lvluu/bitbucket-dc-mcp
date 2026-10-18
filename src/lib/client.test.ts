@@ -8,6 +8,10 @@ describe("encodePath", () => {
     test("drops leading, trailing and duplicate slashes", () => {
         expect(encodePath("/src//index.ts/")).toBe("src/index.ts");
     });
+    test("rejects . and .. segments so the request cannot leave the diff resource", () => {
+        expect(() => encodePath("src/../../rest/api")).toThrow("not allowed");
+        expect(() => encodePath("./src")).toThrow("not allowed");
+    });
 });
 
 describe("commitDiffPath", () => {

@@ -37,7 +37,11 @@ export function repoPath(projectKey: string, repoSlug: string): string {
 }
 /** URL-encode each segment of a repository file path, keeping the "/" separators */
 export function encodePath(path: string): string {
-    return path.split("/").filter((segment) => segment !== "").map(encodeURIComponent).join("/");
+    const segments = path.split("/").filter((segment) => segment !== "");
+    if (segments.some((segment) => segment === "." || segment === "..")) {
+        throw new Error(`Invalid file path "${path}": "." and ".." segments are not allowed`);
+    }
+    return segments.map(encodeURIComponent).join("/");
 }
 /** Build the DC API path for a commit diff: whole commit, or a single file when `path` is given */
 export function commitDiffPath(projectKey: string, repoSlug: string, commitId: string, path?: string): string {
