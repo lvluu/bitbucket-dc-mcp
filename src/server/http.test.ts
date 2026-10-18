@@ -88,3 +88,30 @@ test("rejects a non-initialize request without a session id", async () => {
     });
     expect(res.status).toBe(400);
 });
+
+async function corsResponse(corsOrigin: string, origin: string): Promise<Response> {
+    const app = createHttpApp(() => Promise.resolve(new McpServer({ name: "t", version: "0" })), corsOrigin);
+    const srv = app.app.listen(0, "127.0.0.1");
+    await new Promise<void>(resolve => srv.once("listening", () => { resolve(); }));
+    try {
+        const port = String((srv.address() as AddressInfo).port);
+        return await fetch(`http://127.0.0.1:${port}/health`, { headers: { origin } });
+    } finally {
+        await app.close();
+        srv.close();
+    }
+}
+
+test("wildcard CORS origin does not allow credentials", async () => {
+    const res = await corsResponse("*", "https://a.example");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+    expect(res.headers.get("access-control-allow-credentials")).toBeNull();
+});
+
+test("listed CORS origin is echoed with credentials; unlisted gets no ACAO", async () => {
+    const ok = await corsResponse("https://a.example, https://b.example", "https://b.example");
+    expect(ok.headers.get("access-control-allow-origin")).toBe("https://b.example");
+    expect(ok.headers.get("access-control-allow-credentials")).toBe("true");
+    const no = await corsResponse("https://a.example", "https://evil.example");
+    expect(no.headers.get("access-control-allow-origin")).toBeNull();
+});

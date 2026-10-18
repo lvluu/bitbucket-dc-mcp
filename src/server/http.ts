@@ -28,9 +28,12 @@ export function createHttpApp(createServer: () => Promise<McpServer>, corsOrigin
     const sessions = new Map<string, Session>();
     const app = express();
     app.use(express.json({ limit: "1mb" }));
+    // Browsers reject credentialed responses with ACAO "*", so credentials need an explicit origin list.
+    const configured = corsOrigin.trim() || "*";
+    const isWildcard = configured === "*";
     app.use(cors({
-        origin: corsOrigin,
-        credentials: true,
+        origin: isWildcard ? "*" : configured.split(",").map(o => o.trim()).filter(Boolean),
+        credentials: !isWildcard,
         methods: ["GET", "POST", "OPTIONS", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization", "mcp-session-id", "mcp-protocol-version", "last-event-id"],
         exposedHeaders: ["mcp-session-id"]

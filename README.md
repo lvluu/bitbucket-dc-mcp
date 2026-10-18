@@ -121,7 +121,7 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 | `BITBUCKET_MAX_CHARS` | No | Cap per text result (diffs, patches, raw files); appends a truncation note | `60000` |
 | `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `http` |
 | `PORT` | No | HTTP server port | `3000` |
-| `CORS_ORIGIN` | No | CORS allowed origins | `*` |
+| `CORS_ORIGIN` | No | CORS allowed origins, comma-separated; credentials are only allowed when this is not `*` | `*` |
 
 \* Either `BITBUCKET_TOKEN` or both `BITBUCKET_USERNAME` + `BITBUCKET_PASSWORD` are required.
 
