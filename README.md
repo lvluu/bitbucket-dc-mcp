@@ -111,7 +111,7 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 
 | Variable | Required | Description | Default |
 |----------|----------|-------------|---------|
-| `BITBUCKET_URL` | Yes | Bitbucket DC base URL (auto-appends `/rest/api/1.0`) | — |
+| `BITBUCKET_URL` | Yes | Bitbucket DC base URL, incl. any context path (e.g. `https://host/bitbucket`); auto-appends `/rest/api/1.0` | — |
 | `BITBUCKET_TOKEN` | Yes* | Personal access token (Bearer auth) | — |
 | `BITBUCKET_USERNAME` | Yes* | Username for basic auth | — |
 | `BITBUCKET_PASSWORD` | Yes* | Password for basic auth | — |

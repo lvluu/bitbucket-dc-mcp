@@ -6,18 +6,30 @@ export interface BitbucketConfig {
     defaultProject: string | undefined;
     enableDangerous: boolean;
 }
-function normalizeBaseUrl(raw: string): string {
+/** Path before the first `/rest` segment, i.e. the reverse-proxy context path ("" or e.g. "/bitbucket"). */
+function contextPath(pathname: string): string {
+    const restIndex = pathname.search(/\/rest(\/|$)/);
+    const prefix = restIndex === -1 ? pathname : pathname.slice(0, restIndex);
+    return prefix.replace(/\/+$/, "");
+}
+/** Normalize BITBUCKET_URL to the REST API base, keeping any context path (https://host/bitbucket → https://host/bitbucket/rest/api/1.0). */
+export function normalizeBaseUrl(raw: string): string {
     try {
         const parsed = new URL(raw);
         const pathname = parsed.pathname.replace(/\/+$/, "");
         if (!pathname.includes("/rest/api/")) {
-            return `${parsed.origin}/rest/api/1.0`;
+            return `${parsed.origin}${contextPath(pathname)}/rest/api/1.0`;
         }
         return `${parsed.origin}${pathname}`;
     }
     catch {
         return raw;
     }
+}
+/** Server root including context path (https://host/bitbucket/rest/api/1.0 → https://host/bitbucket). */
+export function serverRootUrl(baseUrl: string): string {
+    const parsed = new URL(baseUrl);
+    return `${parsed.origin}${contextPath(parsed.pathname)}`;
 }
 function isTruthy(value: string | undefined): boolean {
     if (value === undefined || value === '')

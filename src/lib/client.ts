@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from "axios";
-import { getAuthHeaders, getBasicAuth, type BitbucketConfig } from "./config.js";
+import { getAuthHeaders, getBasicAuth, serverRootUrl, type BitbucketConfig } from "./config.js";
 let client: AxiosInstance | undefined;
 let config: BitbucketConfig | undefined;
 export function initClient(cfg: BitbucketConfig): void {
@@ -26,10 +26,10 @@ export function getConfig(): BitbucketConfig {
     }
     return config;
 }
-/** Get the Bitbucket server origin (e.g. https://bitbucket.example.com) */
+/** Get the Bitbucket server root incl. any context path (e.g. https://host/bitbucket), for non-/rest/api endpoints */
 export function getOriginUrl(): string {
     const cfg = getConfig();
-    return new URL(cfg.baseUrl).origin;
+    return serverRootUrl(cfg.baseUrl);
 }
 /** Build the DC API path for a project's repository */
 export function repoPath(projectKey: string, repoSlug: string): string {
