@@ -4,12 +4,12 @@ import fastGlob from "fast-glob";
 import type { ModuleLoadResult } from "./types.js";
 type LoadSettled = PromiseSettledResult<ModuleLoadResult>;
 /**
- * Extracts the module name from a file path by removing the .js extension
+ * Extracts the module name from a file path by removing the .js/.ts extension
  * @param filePath - The full path to the module file
  * @returns The module name without extension
  */
 export function getModuleName(filePath: string): string {
-    return path.basename(filePath, ".js");
+    return path.basename(filePath, path.extname(filePath));
 }
 /**
  * Extracts the module type from a file path based on its parent directory
@@ -28,15 +28,16 @@ export function filePathToUrl(filePath: string): string {
     return pathToFileURL(filePath).href;
 }
 /**
- * Generates glob patterns for finding module files in standard directories
+ * Generates glob patterns for finding module files in standard directories.
+ * Matches .ts too: `bun run dev` loads the sources from src/, where no .js exists.
  * @param rootDir - The root directory to search from
  * @returns Array of glob patterns for module discovery
  */
 export function getModulePatterns(rootDir: string): string[] {
     return [
-        path.join(rootDir, "tools", "*.js"),
-        path.join(rootDir, "resources", "*.js"),
-        path.join(rootDir, "prompts", "*.js"),
+        path.join(rootDir, "tools", "*.{js,ts}"),
+        path.join(rootDir, "resources", "*.{js,ts}"),
+        path.join(rootDir, "prompts", "*.{js,ts}"),
     ].map(p => p.replaceAll("\\", "/"));
 }
 /**
@@ -166,6 +167,8 @@ export function logFailedModules(results: LoadSettled[]): void {
         }
     });
 }
+/** Test and declaration files sit next to the modules but are not modules. */
+const MODULE_IGNORE = ["**/*.test.*", "**/*.d.ts"];
 /**
  * Finds all module files in the standard module directories
  * @param rootDir - The root directory to search from
@@ -177,6 +180,7 @@ export async function findModuleFiles(rootDir: string): Promise<string[]> {
     const files = await fastGlob(patterns, {
         absolute: true,
         onlyFiles: true,
+        ignore: MODULE_IGNORE,
     });
     logFoundFiles(files.length);
     return files;
