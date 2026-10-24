@@ -41,3 +41,25 @@ describe("merge-queue-state", () => {
         expect(getMergeQueue(key2)).toEqual([2]);
     });
 });
+
+describe("merge-queue-state dedupe and targeted dequeue", () => {
+    const key = mergeQueueKey("PROJ", "dedupe");
+    beforeEach(() => {
+        clearMergeQueue(key);
+    });
+
+    it("returns the existing position when a PR is enqueued twice", () => {
+        enqueuePullRequest(key, 1);
+        enqueuePullRequest(key, 2);
+        expect(enqueuePullRequest(key, 1)).toBe(1);
+        expect(getMergeQueue(key)).toEqual([1, 2]);
+    });
+
+    it("dequeues by prId and is a no-op when absent", () => {
+        enqueuePullRequest(key, 1);
+        enqueuePullRequest(key, 2);
+        expect(dequeuePullRequest(key, 2)).toBe(2);
+        expect(dequeuePullRequest(key, 9)).toBeUndefined();
+        expect(getMergeQueue(key)).toEqual([1]);
+    });
+});

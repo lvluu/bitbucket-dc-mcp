@@ -7,6 +7,8 @@ import {
     enqueuePullRequest,
     getMergeQueue,
     dequeuePullRequest,
+    tryAcquireProcessing,
+    releaseProcessing,
 } from "#lib/merge-queue-state.js";
 
 const DESC_PROJECT_KEY = "Project key";
@@ -79,10 +81,14 @@ const mergeQueueModule = {
                 strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional().describe("Merge strategy"),
             },
         }, async (args) => {
+            const key = mergeQueueKey(args.projectKey, args.repoSlug);
+            if (!tryAcquireProcessing(key)) {
+                return { content: [{ type: "text", text: `processMergeQueue is already running for ${key}` }], isError: true };
+            }
+            const merged: Array<{ prId: number; result: unknown }> = [];
+            let currentPrId: number | undefined;
             try {
-                const key = mergeQueueKey(args.projectKey, args.repoSlug);
                 const client = getClient();
-                const merged: Array<{ prId: number; result: unknown }> = [];
 
                 while (true) {
                     const queue = getMergeQueue(key);
@@ -90,6 +96,7 @@ const mergeQueueModule = {
                         break;
                     }
                     const prId = queue[0];
+                    currentPrId = prId;
 
                     // Check mergeability: GET /projects/{projectKey}/repos/{repoSlug}/pull-requests/{id}/merge
                     const checkRes = await client.get<MergeabilityResponse>(`${prPath(args.projectKey, args.repoSlug, prId)}/merge`);
@@ -126,7 +133,7 @@ const mergeQueueModule = {
                     const mergeRes = await client.post(`${prPath(args.projectKey, args.repoSlug, prId)}/merge`, mergeData);
 
                     // Dequeue the merged PR
-                    dequeuePullRequest(key);
+                    dequeuePullRequest(key, prId);
                     merged.push({ prId, result: mergeRes.data });
                 }
 
@@ -136,7 +143,18 @@ const mergeQueueModule = {
                     remainingQueue: getMergeQueue(key),
                 });
             } catch (error) {
-                return { content: [{ type: "text", text: formatError(error) }], isError: true };
+                return {
+                    ...jsonResult({
+                        status: "error",
+                        error: formatError(error),
+                        failedPrId: currentPrId,
+                        merged,
+                        remainingQueue: getMergeQueue(key),
+                    }),
+                    isError: true,
+                };
+            } finally {
+                releaseProcessing(key);
             }
         });
     },
