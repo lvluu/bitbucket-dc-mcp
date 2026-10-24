@@ -44,7 +44,7 @@ const mergeQueueModule = {
                     repoSlug: args.repoSlug,
                     prId: args.prId,
                     position,
-                    queueLength: position,
+                    queueLength: getMergeQueue(key).length,
                 });
             } catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

@@ -94,6 +94,20 @@ describe("processMergeQueue", () => {
         expect(body.remainingQueue).toEqual([2, 3]);
     });
 
+    test("first-PR failure reports failedPrId (squeeze drops the empty merged list)", async () => {
+        await run("enqueuePullRequest", { ...base, prId: 1 });
+        stub("get", getFor(() => true));
+        stub("post", () => Promise.reject(new Error("boom")));
+
+        const res = await run("processMergeQueue");
+
+        expect(res.isError).toBe(true);
+        const body = parse(res);
+        expect(body.failedPrId).toBe(1);
+        expect(body.merged).toBeUndefined();
+        expect(getMergeQueue(key)).toEqual([1]);
+    });
+
     test("rejects an overlapping run for the same repo and frees the lock afterwards", async () => {
         await run("enqueuePullRequest", { ...base, prId: 1 });
         await run("enqueuePullRequest", { ...base, prId: 2 });
@@ -130,6 +144,7 @@ describe("enqueuePullRequest", () => {
         const body = parse(await run("enqueuePullRequest", { ...base, prId: 1 }));
 
         expect(body.position).toBe(1);
+        expect(body.queueLength).toBe(2);
         expect(getMergeQueue(key)).toEqual([1, 2]);
     });
 });
