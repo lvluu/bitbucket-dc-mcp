@@ -167,6 +167,8 @@ docker run -p 3000:3000 \
 
 Clients then send `Authorization: Bearer <MCP_AUTH_TOKEN>`.
 
+Without a token on a loopback bind, requests whose `Host` header is not `localhost`/`127.0.0.1`/`[::1]` get 403 (DNS-rebinding guard). `CORS_ORIGIN` defaults to `*`, so any web page you open can still call a tokenless loopback server; set `CORS_ORIGIN` to your client's origin or use `MCP_AUTH_TOKEN` if that matters.
+
 ### Stdio Mode
 
 Traditional stdio transport for local clients like Claude Desktop:

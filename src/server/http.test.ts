@@ -1,10 +1,10 @@
-import type { Server } from "node:http";
+import { request as httpRequest, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterAll, beforeAll, expect, test } from "bun:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { createHttpApp, isLoopbackHost, positiveInt, resolveHost, type HttpApp, type HttpOptions } from "./http.js";
+import { createHttpApp, isLoopbackHost, LOOPBACK_HOSTNAMES, positiveInt, resolveHost, type HttpApp, type HttpOptions } from "./http.js";
 
 let http: HttpApp;
 let listener: Server;
@@ -264,7 +264,7 @@ test("auth token: /mcp rejects missing or wrong bearer with 401, accepts the rig
         expect(none.headers.get("www-authenticate")).toBe("Bearer");
         expect((await postInit(app.url, "Bearer wrong")).status).toBe(401);
         expect((await postInit(app.url, "Basic s3cret")).status).toBe(401);
-        expect((await postInit(app.url, "Bearer s3cret")).status).toBe(200);
+        expect((await postInit(app.url, "bearer s3cret")).status).toBe(200);
         expect(app.http.sessionCount()).toBe(1);
     } finally {
         await app.stop();
@@ -313,5 +313,24 @@ test("server started with the default host is unreachable on a non-loopback addr
     } finally {
         await http.close();
         srv.close();
+    }
+});
+
+test("allowedHosts rejects a rebound Host header with 403 and accepts loopback names", async () => {
+    const app = await localApp({ allowedHosts: LOOPBACK_HOSTNAMES });
+    try {
+        const port = app.url.port;
+        const call = (host: string) => new Promise<number>((resolve, reject) => {
+            const req = httpRequest({ host: "127.0.0.1", port, path: "/health", headers: { host } }, res => { res.resume(); resolve(res.statusCode ?? 0); });
+            req.on("error", reject);
+            req.end();
+        });
+        expect(await call(`127.0.0.1:${port}`)).toBe(200);
+        expect(await call(`localhost:${port}`)).toBe(200);
+        expect(await call(`[::1]:${port}`)).toBe(200);
+        expect(await call(`evil.example:${port}`)).toBe(403);
+        expect(await call("evil.example")).toBe(403);
+    } finally {
+        await app.stop();
     }
 });

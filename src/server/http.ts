@@ -20,6 +20,8 @@ export interface HttpOptions {
     now?: () => number;
     /** When set, `/mcp` requires `Authorization: Bearer <authToken>`; `/health` stays open. */
     authToken?: string;
+    /** Accepted `Host` header hostnames (lowercase, no port); others get 403. Blocks DNS rebinding on loopback binds. */
+    allowedHosts?: string[];
 }
 
 export const DEFAULT_IDLE_TTL_MS = 30 * 60 * 1000;
@@ -40,11 +42,14 @@ export function isLoopbackHost(host: string): boolean {
     return host === "localhost" || host === "::1" || host === "[::1]" || /^127(\.\d{1,3}){3}$/.test(host);
 }
 
+/** Hostnames a client legitimately uses to reach a loopback-bound server. */
+export const LOOPBACK_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]"];
+
 const sha256 = (value: string): Buffer => createHash("sha256").update(value).digest();
 
 /** Constant-time bearer check; hashing first equalises lengths so timingSafeEqual cannot throw. */
 function hasValidBearer(header: string | undefined, token: string): boolean {
-    const match = header === undefined ? null : /^Bearer (.+)$/.exec(header);
+    const match = header === undefined ? null : /^Bearer\s+(.+)$/i.exec(header);
     return match !== null && timingSafeEqual(sha256(match[1] ?? ""), sha256(token));
 }
 
@@ -73,6 +78,17 @@ export function createHttpApp(createServer: () => Promise<McpServer>, corsOrigin
     const sessions = new Map<string, Session>();
     let pendingInits = 0;
     const app = express();
+    const allowedHosts = options.allowedHosts;
+    if (allowedHosts !== undefined) {
+        app.use((req, res, next) => {
+            const hostname = /^(\[[^\]]+\]|[^:]*)/.exec(req.headers.host ?? "")?.[1]?.toLowerCase() ?? "";
+            if (allowedHosts.includes(hostname)) {
+                next();
+                return;
+            }
+            sendJsonRpcError(res, 403, -32000, "Forbidden: unexpected Host header");
+        });
+    }
     app.use(express.json({ limit: "1mb" }));
     // Browsers reject credentialed responses with ACAO "*", so credentials need an explicit origin list.
     const configured = corsOrigin.trim() || "*";

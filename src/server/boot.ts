@@ -5,7 +5,7 @@ import { config } from "dotenv";
 import { initClient } from "#lib/client.js";
 import { loadConfig } from "#lib/config.js";
 import { autoRegisterModules } from "#registry/auto-loader.js";
-import { createHttpApp, DEFAULT_IDLE_TTL_MS, DEFAULT_MAX_SESSIONS, isLoopbackHost, positiveInt, resolveHost } from "./http.js";
+import { createHttpApp, DEFAULT_IDLE_TTL_MS, DEFAULT_MAX_SESSIONS, isLoopbackHost, LOOPBACK_HOSTNAMES, positiveInt, resolveHost } from "./http.js";
 // Load environment variables from .env file
 config();
 export async function boot(mode?: string): Promise<void> {
@@ -36,14 +36,15 @@ export async function boot(mode?: string): Promise<void> {
     }
     // HTTP mode: one McpServer + transport per MCP session
     const corsOrigin = process.env.CORS_ORIGIN ?? "*";
+    const host = resolveHost(process.env.HOST);
+    const hasAuth = (process.env.MCP_AUTH_TOKEN ?? "") !== "";
     const http = createHttpApp(createServer, corsOrigin, {
         idleTtlMs: positiveInt(process.env.MCP_SESSION_IDLE_TTL_MS, DEFAULT_IDLE_TTL_MS),
         maxSessions: positiveInt(process.env.MCP_MAX_SESSIONS, DEFAULT_MAX_SESSIONS),
         authToken: process.env.MCP_AUTH_TOKEN,
+        allowedHosts: isLoopbackHost(host) && !hasAuth ? LOOPBACK_HOSTNAMES : undefined,
     });
     const port = Number(process.env.PORT ?? 3000);
-    const host = resolveHost(process.env.HOST);
-    const hasAuth = (process.env.MCP_AUTH_TOKEN ?? "") !== "";
     const httpServer = http.app.listen(port, host, () => {
         const base = `http://${host.includes(":") ? `[${host}]` : host}:${String(port)}`;
         console.log(`Bitbucket DC MCP Server (HTTP) listening on ${base}/mcp`);
