@@ -141,27 +141,6 @@ describe("review session ownership", () => {
         expect(() => startReviewSession(key, owner)).toThrow("another MCP session");
     });
 
-    test("an idle session expires and the PR can be reviewed again", () => {
-        let t = 1000;
-        resetReviewState({ ttlMs: 100, now: () => t });
-        startReviewSession(key, other);
-        t += 99;
-        expect(hasActiveReview(key, other)).toBe(true);
-        t += 100;
-        expect(hasActiveReview(key, other)).toBe(false);
-        expect(() => startReviewSession(key, owner)).not.toThrow();
-    });
-
-    test("activity keeps a session alive", () => {
-        let t = 0;
-        resetReviewState({ ttlMs: 100, now: () => t });
-        startReviewSession(key, owner);
-        t += 80;
-        addPendingComment(key, owner, { text: "x" });
-        t += 80;
-        expect(getReviewSession(key, owner)).toHaveLength(1);
-    });
-
     test("closing the owning session drops its reviews", () => {
         startReviewSession(key, owner);
         owner.server.onclose?.();

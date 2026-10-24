@@ -6,8 +6,10 @@
  * posts them all at once.
  *
  * Every session is owned by the MCP server instance (one per MCP session) that started it:
- * other sessions cannot see, buffer into, finish or discard it. A session is dropped when its
- * owner closes, and expires after the idle TTL so a vanished client cannot block the PR.
+ * other sessions cannot see, buffer into, finish or discard it. A review lives exactly as long as
+ * its MCP session: it is dropped when the owner closes, which the HTTP idle sweep
+ * (MCP_SESSION_IDLE_TTL_MS) does for a vanished client. No separate clock, so a long reading
+ * session never loses its buffered comments.
  */
 // Key: "projectKey/repoSlug/prId"
 export interface PendingComment {
@@ -19,39 +21,16 @@ export type ReviewOwner = object;
 interface ReviewSession {
     owner: ReviewOwner;
     comments: PendingComment[];
-    lastTouched: number;
 }
 
-export const DEFAULT_REVIEW_TTL_MS = 30 * 60 * 1000;
-
-function envTtlMs(): number {
-    const raw = process.env.MCP_SESSION_IDLE_TTL_MS;
-    const n = Number(raw);
-    return raw !== undefined && Number.isInteger(n) && n > 0 ? n : DEFAULT_REVIEW_TTL_MS;
-}
-
-let ttlMs = envTtlMs();
-let now: () => number = Date.now;
 const reviewSessions = new Map<string, ReviewSession>();
 
-/** Override the TTL and clock (tests) and drop all sessions; call with no args to restore defaults. */
-export function resetReviewState(options: { ttlMs?: number; now?: () => number } = {}): void {
-    ttlMs = options.ttlMs ?? envTtlMs();
-    now = options.now ?? Date.now;
+/** Drop all sessions (tests). */
+export function resetReviewState(): void {
     reviewSessions.clear();
 }
 
-function sweepExpired(): void {
-    const cutoff = now() - ttlMs;
-    for (const [key, session] of reviewSessions) {
-        if (session.lastTouched <= cutoff) {
-            reviewSessions.delete(key);
-        }
-    }
-}
-
 function ownedSession(key: string, owner: ReviewOwner): ReviewSession | undefined {
-    sweepExpired();
     const session = reviewSessions.get(key);
     return session?.owner === owner ? session : undefined;
 }
@@ -72,25 +51,19 @@ export function hasActiveReview(key: string, owner: ReviewOwner): boolean {
     return ownedSession(key, owner) !== undefined;
 }
 export function startReviewSession(key: string, owner: ReviewOwner): void {
-    sweepExpired();
     const existing = reviewSessions.get(key);
     if (existing !== undefined) {
         throw new Error(existing.owner === owner
             ? `A review session is already active for ${key}. Finish or discard it first.`
-            : `A review session is already active for ${key} in another MCP session; it expires after ${String(Math.round(ttlMs / 1000))}s idle.`);
+            : `A review session is already active for ${key} in another MCP session; it is released when that session closes.`);
     }
-    reviewSessions.set(key, { owner, comments: [], lastTouched: now() });
+    reviewSessions.set(key, { owner, comments: [] });
 }
 export function getReviewSession(key: string, owner: ReviewOwner): PendingComment[] | undefined {
-    const session = ownedSession(key, owner);
-    if (session !== undefined) {
-        session.lastTouched = now();
-    }
-    return session?.comments;
+    return ownedSession(key, owner)?.comments;
 }
 export function addPendingComment(key: string, owner: ReviewOwner, comment: PendingComment): number {
     const session = requireSession(key, owner);
-    session.lastTouched = now();
     session.comments.push(comment);
     return session.comments.length - 1;
 }

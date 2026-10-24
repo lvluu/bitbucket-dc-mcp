@@ -61,7 +61,7 @@ const prReviewModule = {
             previousOnClose?.();
         };
         server.registerTool("startReview", {
-            description: "Start a review session for a pull request. While a review is active, comments added via addPRComment are buffered in memory instead of being posted immediately. Use finishReview to publish all buffered comments at once, or discardReview to drop them. The review belongs to this MCP session and expires after MCP_SESSION_IDLE_TTL_MS (default 30 min) of inactivity; comments added after expiry are posted immediately.",
+            description: "Start a review session for a pull request. While a review is active, comments added via addPRComment are buffered in memory instead of being posted immediately. Use finishReview to publish all buffered comments at once, or discardReview to drop them. The review belongs to this MCP session and is dropped when the session closes (HTTP: after MCP_SESSION_IDLE_TTL_MS idle).",
             inputSchema: {
                 projectKey: z.string().describe(DESC_PROJECT_KEY),
                 repoSlug: z.string().describe(DESC_REPO_SLUG),
