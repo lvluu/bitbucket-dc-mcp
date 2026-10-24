@@ -126,7 +126,7 @@ The server starts in HTTP mode by default at `http://127.0.0.1:3000/mcp`, reacha
 | `PORT` | No | HTTP server port | `3000` |
 | `HOST` | No | HTTP bind address; set `0.0.0.0` in containers. A warning is logged when non-loopback and `MCP_AUTH_TOKEN` is unset | `127.0.0.1` |
 | `MCP_AUTH_TOKEN` | No | HTTP mode: when set, `/mcp` requires `Authorization: Bearer <token>` (401 otherwise); `/health` stays open | — |
-| `MCP_SESSION_IDLE_TTL_MS` | No | HTTP mode: close an MCP session after this many ms without requests (swept every minute) | `1800000` |
+| `MCP_SESSION_IDLE_TTL_MS` | No | HTTP mode: close an MCP session after this many ms without requests (swept every minute); also expires an idle `startReview` session that was never finished | `1800000` |
 | `MCP_MAX_SESSIONS` | No | HTTP mode: max concurrent MCP sessions; further `initialize` requests get 503 | `100` |
 | `CORS_ORIGIN` | No | CORS allowed origins, comma-separated; credentials are only allowed when this is not `*` | `*` |
 

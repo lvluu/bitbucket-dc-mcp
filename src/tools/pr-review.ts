@@ -4,7 +4,7 @@ import { getClient, prPath } from "#lib/client.js";
 import type { AxiosInstance } from "axios";
 import { formatError, jsonResult, textResult, type ToolResult } from "#lib/errors.js";
 import type { PendingComment } from "#lib/review-state.js";
-import { reviewKey, startReviewSession, getReviewSession, clearReviewSession, } from "#lib/review-state.js";
+import { reviewKey, startReviewSession, getReviewSession, clearReviewSession, releaseReviewOwner, } from "#lib/review-state.js";
 const DESC_PROJECT_KEY = "Project key";
 const DESC_REPO_SLUG = "Repository slug";
 const DESC_PR_ID = "Pull request ID";
@@ -55,6 +55,11 @@ const prReviewModule = {
     name: "pr-review",
     description: "Bitbucket DC pull request review session operations",
     register(server: McpServer): void {
+        const previousOnClose = server.server.onclose;
+        server.server.onclose = () => {
+            releaseReviewOwner(server);
+            previousOnClose?.();
+        };
         server.registerTool("startReview", {
             description: "Start a review session for a pull request. While a review is active, comments added via addPRComment are buffered in memory instead of being posted immediately. Use finishReview to publish all buffered comments at once, or discardReview to drop them.",
             inputSchema: {
@@ -65,7 +70,7 @@ const prReviewModule = {
         }, (args) => {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
-                startReviewSession(key);
+                startReviewSession(key, server);
                 return textResult(`Review session started for ${args.projectKey}/${args.repoSlug} PR #${String(args.prId)}. Comments added via addPRComment will be buffered until you call finishReview.`);
             }
             catch (error) {
@@ -86,7 +91,7 @@ const prReviewModule = {
         }, async (args) => {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
-                const pendingComments = clearReviewSession(key);
+                const pendingComments = clearReviewSession(key, server);
                 if (pendingComments.length === 0 && args.reviewStatus === undefined) {
                     return textResult("Review session finished with no pending comments.");
                 }
@@ -128,7 +133,7 @@ const prReviewModule = {
         }, (args) => {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
-                const discarded = clearReviewSession(key);
+                const discarded = clearReviewSession(key, server);
                 return textResult(`Review discarded. ${String(discarded.length)} pending comment(s) dropped.`);
             }
             catch (error) {
@@ -145,7 +150,7 @@ const prReviewModule = {
         }, (args) => {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
-                const session = getReviewSession(key);
+                const session = getReviewSession(key, server);
                 if (session === undefined) {
                     return {
                         content: [

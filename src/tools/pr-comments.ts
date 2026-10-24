@@ -89,8 +89,8 @@ const prCommentsModule = {
                 }
                 // If a review session is active, buffer the comment instead of posting
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
-                if (hasActiveReview(key)) {
-                    const index = addPendingComment(key, body);
+                if (hasActiveReview(key, server)) {
+                    const index = addPendingComment(key, server, body);
                     return jsonResult({ state: "PENDING", pendingIndex: index, text: args.text });
                 }
                 const client = getClient();
