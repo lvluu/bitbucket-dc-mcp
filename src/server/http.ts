@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
@@ -18,6 +18,8 @@ export interface HttpOptions {
     maxSessions?: number;
     sweepIntervalMs?: number;
     now?: () => number;
+    /** When set, `/mcp` requires `Authorization: Bearer <authToken>`; `/health` stays open. */
+    authToken?: string;
 }
 
 export const DEFAULT_IDLE_TTL_MS = 30 * 60 * 1000;
@@ -26,6 +28,24 @@ export const DEFAULT_MAX_SESSIONS = 100;
 export function positiveInt(raw: string | undefined, fallback: number): number {
     const n = Number(raw);
     return raw !== undefined && Number.isInteger(n) && n > 0 ? n : fallback;
+}
+
+export const DEFAULT_HOST = "127.0.0.1";
+/** Bind address from env: unset or blank falls back to loopback so the Bitbucket token is not exposed. */
+export function resolveHost(raw: string | undefined): string {
+    const host = raw?.trim();
+    return host === undefined || host === "" ? DEFAULT_HOST : host;
+}
+export function isLoopbackHost(host: string): boolean {
+    return host === "localhost" || host === "::1" || host === "[::1]" || /^127(\.\d{1,3}){3}$/.test(host);
+}
+
+const sha256 = (value: string): Buffer => createHash("sha256").update(value).digest();
+
+/** Constant-time bearer check; hashing first equalises lengths so timingSafeEqual cannot throw. */
+function hasValidBearer(header: string | undefined, token: string): boolean {
+    const match = header === undefined ? null : /^Bearer (.+)$/.exec(header);
+    return match !== null && timingSafeEqual(sha256(match[1] ?? ""), sha256(token));
 }
 
 const DEFAULT_SWEEP_INTERVAL_MS = 60 * 1000;
@@ -67,6 +87,19 @@ export function createHttpApp(createServer: () => Promise<McpServer>, corsOrigin
     app.get("/health", (_req, res) => {
         res.json({ status: "ok", server: "bitbucket-dc-mcp" });
     });
+
+    const authToken = options.authToken;
+    if (authToken !== undefined && authToken !== "") {
+        app.use("/mcp", (req, res, next) => {
+            // Preflights carry no credentials; the cors middleware above has already answered them.
+            if (req.method === "OPTIONS" || hasValidBearer(req.headers.authorization, authToken)) {
+                next();
+                return;
+            }
+            res.setHeader("WWW-Authenticate", "Bearer");
+            sendJsonRpcError(res, 401, -32001, "Unauthorized");
+        });
+    }
 
     async function startSession(req: Request, res: Response): Promise<void> {
         pendingInits++;

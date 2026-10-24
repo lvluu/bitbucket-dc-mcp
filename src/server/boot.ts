@@ -5,7 +5,7 @@ import { config } from "dotenv";
 import { initClient } from "#lib/client.js";
 import { loadConfig } from "#lib/config.js";
 import { autoRegisterModules } from "#registry/auto-loader.js";
-import { createHttpApp, DEFAULT_IDLE_TTL_MS, DEFAULT_MAX_SESSIONS, positiveInt } from "./http.js";
+import { createHttpApp, DEFAULT_IDLE_TTL_MS, DEFAULT_MAX_SESSIONS, isLoopbackHost, positiveInt, resolveHost } from "./http.js";
 // Load environment variables from .env file
 config();
 export async function boot(mode?: string): Promise<void> {
@@ -39,12 +39,20 @@ export async function boot(mode?: string): Promise<void> {
     const http = createHttpApp(createServer, corsOrigin, {
         idleTtlMs: positiveInt(process.env.MCP_SESSION_IDLE_TTL_MS, DEFAULT_IDLE_TTL_MS),
         maxSessions: positiveInt(process.env.MCP_MAX_SESSIONS, DEFAULT_MAX_SESSIONS),
+        authToken: process.env.MCP_AUTH_TOKEN,
     });
     const port = Number(process.env.PORT ?? 3000);
-    const httpServer = http.app.listen(port, () => {
-        console.log(`Bitbucket DC MCP Server (HTTP) listening on http://localhost:${String(port)}/mcp`);
-        console.log(`Health check: http://localhost:${String(port)}/health`);
+    const host = resolveHost(process.env.HOST);
+    const hasAuth = (process.env.MCP_AUTH_TOKEN ?? "") !== "";
+    const httpServer = http.app.listen(port, host, () => {
+        const base = `http://${host.includes(":") ? `[${host}]` : host}:${String(port)}`;
+        console.log(`Bitbucket DC MCP Server (HTTP) listening on ${base}/mcp`);
+        console.log(`Health check: ${base}/health`);
         console.log(`CORS origin: ${corsOrigin}`);
+        console.log(`Auth: ${hasAuth ? "Bearer token required on /mcp" : "none"}`);
+        if (!isLoopbackHost(host) && !hasAuth) {
+            console.warn(`WARNING: bound to ${host} with no MCP_AUTH_TOKEN; anyone who can reach this port can use your BITBUCKET_TOKEN. Set MCP_AUTH_TOKEN or bind HOST=127.0.0.1.`);
+        }
     });
     process.on("SIGINT", () => {
         console.log("Shutting down...");

@@ -91,6 +91,8 @@ BITBUCKET_DEFAULT_PROJECT=MYPROJ
 BITBUCKET_ENABLE_DANGEROUS=false
 MCP_TRANSPORT=http
 PORT=3000
+HOST=127.0.0.1
+# MCP_AUTH_TOKEN=change-me   # require "Authorization: Bearer ..." on /mcp
 ```
 
 ### 2. Run
@@ -103,7 +105,7 @@ bitbucket-dc-mcp
 npx @shibainu16/bitbucket-dc-mcp
 ```
 
-The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
+The server starts in HTTP mode by default at `http://127.0.0.1:3000/mcp`, reachable only from the local machine. To expose it (containers, LAN), set `HOST=0.0.0.0` **and** `MCP_AUTH_TOKEN`: the server holds your Bitbucket credentials and every tool runs with them.
 
 ## Configuration
 
@@ -122,6 +124,8 @@ The server starts in HTTP mode by default at `http://localhost:3000/mcp`.
 | `BITBUCKET_MAX_CHARS` | No | Cap per text result (diffs, patches, raw files); appends a truncation note | `60000` |
 | `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `http` |
 | `PORT` | No | HTTP server port | `3000` |
+| `HOST` | No | HTTP bind address; set `0.0.0.0` in containers. A warning is logged when non-loopback and `MCP_AUTH_TOKEN` is unset | `127.0.0.1` |
+| `MCP_AUTH_TOKEN` | No | HTTP mode: when set, `/mcp` requires `Authorization: Bearer <token>` (401 otherwise); `/health` stays open | — |
 | `MCP_SESSION_IDLE_TTL_MS` | No | HTTP mode: close an MCP session after this many ms without requests (swept every minute) | `1800000` |
 | `MCP_MAX_SESSIONS` | No | HTTP mode: max concurrent MCP sessions; further `initialize` requests get 503 | `100` |
 | `CORS_ORIGIN` | No | CORS allowed origins, comma-separated; credentials are only allowed when this is not `*` | `*` |
@@ -151,6 +155,17 @@ Endpoints:
 - `GET /health` — Health check
 
 Each client gets its own MCP session (`mcp-session-id` header), so any number of clients can connect at once. Sessions with no POST/DELETE for `MCP_SESSION_IDLE_TTL_MS` expire (an open SSE stream does not keep them alive; clients re-initialize on 404), and when `MCP_MAX_SESSIONS` is reached new `initialize` requests get 503 with `Retry-After`.
+
+Binds to `127.0.0.1` by default. In Docker, or to serve other machines, set `HOST=0.0.0.0` and protect `/mcp` with a token:
+
+```bash
+docker run -p 3000:3000 \
+  -e HOST=0.0.0.0 -e MCP_AUTH_TOKEN="$(openssl rand -hex 32)" \
+  -e BITBUCKET_URL=https://bitbucket.example.com -e BITBUCKET_TOKEN=your-token \
+  your-image-with-bitbucket-dc-mcp
+```
+
+Clients then send `Authorization: Bearer <MCP_AUTH_TOKEN>`.
 
 ### Stdio Mode
 
