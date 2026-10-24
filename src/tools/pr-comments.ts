@@ -52,7 +52,7 @@ const prCommentsModule = {
             }
         });
         server.registerTool("addPRComment", {
-            description: "Add a comment to a pull request (general or inline). If a review session is active (via startReview), the comment is buffered instead of posted immediately.",
+            description: "Add a comment to a pull request (general or inline). If a review session is active (via startReview), the comment is buffered instead of posted immediately (only for the session that started the review; other sessions post immediately).",
             inputSchema: {
                 projectKey: z.string().describe(DESC_PROJECT_KEY),
                 repoSlug: z.string().describe(DESC_REPO_SLUG),
