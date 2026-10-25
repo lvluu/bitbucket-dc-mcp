@@ -122,13 +122,12 @@ export interface ListPage<R = unknown> {
  * Metadata keys come BEFORE values: a BITBUCKET_MAX_CHARS cut trims the tail, never the metadata.
  */
 export function pageResult<R>(page: Pick<PageResult, "isLastPage" | "nextPageStart" | "truncated">, values: R[] | undefined): ListPage<R> {
-    const out: ListPage<R> = { isLastPage: page.isLastPage, values: [] };
-    if (page.nextPageStart !== undefined && !page.isLastPage)
-        out.nextPageStart = page.nextPageStart;
-    if (page.truncated === true)
-        out.truncated = true;
-    out.values = values ?? [];
-    return out;
+    return {
+        isLastPage: page.isLastPage,
+        ...(page.nextPageStart !== undefined && !page.isLastPage ? { nextPageStart: page.nextPageStart } : {}),
+        ...(page.truncated === true ? { truncated: true as const } : {}),
+        values: values ?? [],
+    };
 }
 
 /**
