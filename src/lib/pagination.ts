@@ -8,6 +8,8 @@ export interface PageResult<T = unknown> {
     limit: number;
     isLastPage: boolean;
     nextPageStart?: number;
+    /** True when `all` stopped at the item cap and more items exist from `nextPageStart`. */
+    truncated?: boolean;
     totalFetched: number;
     fetchedPages: number;
 }
@@ -49,15 +51,18 @@ async function fetchSinglePage<T>(client: AxiosInstance, path: string, requestPa
     };
 }
 // eslint-disable-next-line max-params
-async function fetchAllPages<T>(client: AxiosInstance, path: string, params: Record<string, unknown>, resolvedLimit: number, maxItems: number): Promise<PageResult<T>> {
+async function fetchAllPages<T>(client: AxiosInstance, path: string, params: Record<string, unknown>, resolvedLimit: number, maxItems: number, startAt: number | undefined): Promise<PageResult<T>> {
     const aggregated: T[] = [];
     let fetchedPages = 0;
-    let nextStart: number | undefined = undefined;
+    let nextStart = startAt;
     let lastLimit = resolvedLimit;
+    let isLastPage = false;
+    let nextPageStart: number | undefined;
     while (aggregated.length < maxItems) {
+        // Never overshoot the cap, so the server's nextPageStart is a correct continuation point.
         const pageParams: Record<string, unknown> = {
             ...params,
-            limit: resolvedLimit,
+            limit: Math.min(resolvedLimit, maxItems - aggregated.length),
         };
         if (nextStart !== undefined) {
             pageParams.start = nextStart;
@@ -68,22 +73,21 @@ async function fetchAllPages<T>(client: AxiosInstance, path: string, params: Rec
         aggregated.push(...values);
         fetchedPages++;
         lastLimit = data.limit ?? resolvedLimit;
-        const isLastPage = data.isLastPage ?? true;
-        if (isLastPage)
+        isLastPage = data.isLastPage ?? true;
+        nextPageStart = isLastPage ? undefined : data.nextPageStart;
+        if (isLastPage || nextPageStart === undefined) {
+            isLastPage = true;
             break;
-        const nps = data.nextPageStart;
-        if (nps === undefined)
-            break;
-        nextStart = nps;
-    }
-    if (aggregated.length > maxItems) {
-        aggregated.length = maxItems;
+        }
+        nextStart = nextPageStart;
     }
     return {
         values: aggregated,
-        start: 0,
+        start: startAt ?? 0,
         limit: lastLimit,
-        isLastPage: true,
+        isLastPage,
+        nextPageStart,
+        truncated: !isLastPage,
         totalFetched: aggregated.length,
         fetchedPages,
     };
@@ -99,9 +103,74 @@ export async function fetchPage<T = Record<string, unknown>>(client: AxiosInstan
         requestParams.start = start;
     }
     // Single page fetch
-    if (!all || start !== undefined) {
+    if (!all) {
         return await fetchSinglePage<T>(client, path, requestParams, resolvedLimit);
     }
     // Fetch all pages
-    return await fetchAllPages<T>(client, path, params, resolvedLimit, maxItems);
+    return await fetchAllPages<T>(client, path, params, resolvedLimit, maxItems, start);
+}
+
+export interface ListPage<R = unknown> {
+    values: R[];
+    isLastPage: boolean;
+    nextPageStart?: number;
+    truncated?: true;
+}
+
+/** Wrap list values with the paging metadata so callers can tell truncation from completeness. */
+export function pageResult<R>(page: Pick<PageResult, "isLastPage" | "nextPageStart" | "truncated">, values: R[] | undefined): ListPage<R> {
+    const out: ListPage<R> = { values: values ?? [], isLastPage: page.isLastPage };
+    if (page.nextPageStart !== undefined && !page.isLastPage)
+        out.nextPageStart = page.nextPageStart;
+    if (page.truncated === true)
+        out.truncated = true;
+    return out;
+}
+
+/**
+ * Page through a feed (e.g. PR activities) and keep only items passing `pick`, until at least
+ * `limit` matches, the feed ends, or `maxScan` raw items were scanned. `nextPageStart` is a feed
+ * offset, so whole pages are kept (matches may exceed `limit`) to avoid skipping items.
+ */
+export async function fetchFiltered<T, R>(client: AxiosInstance, path: string, pick: (item: T) => R | undefined, options: FetchPageOptions = {}): Promise<PageResult<R>> {
+    const { limit, start, all = false, params = {}, maxItems = DC_ALL_ITEMS_CAP } = options;
+    const resolvedLimit = clampLimit(limit);
+    const wanted = all ? Number.POSITIVE_INFINITY : resolvedLimit;
+    const matches: R[] = [];
+    let scanned = 0;
+    let fetchedPages = 0;
+    let nextStart = start;
+    let isLastPage = false;
+    let nextPageStart: number | undefined;
+    while (matches.length < wanted && scanned < maxItems) {
+        const pageParams: Record<string, unknown> = { ...params, limit: Math.min(DC_MAX_LIMIT, maxItems - scanned) };
+        if (nextStart !== undefined)
+            pageParams.start = nextStart;
+        const response = await client.get<PagedResponse>(path, { params: pageParams });
+        const values: T[] = Array.isArray(response.data.values) ? response.data.values as T[] : [];
+        for (const item of values) {
+            const hit = pick(item);
+            if (hit !== undefined)
+                matches.push(hit);
+        }
+        scanned += values.length;
+        fetchedPages++;
+        isLastPage = response.data.isLastPage ?? true;
+        nextPageStart = isLastPage ? undefined : response.data.nextPageStart;
+        if (nextPageStart === undefined) {
+            isLastPage = true;
+            break;
+        }
+        nextStart = nextPageStart;
+    }
+    return {
+        values: matches,
+        start: start ?? 0,
+        limit: resolvedLimit,
+        isLastPage,
+        nextPageStart,
+        truncated: !isLastPage && matches.length < wanted,
+        totalFetched: scanned,
+        fetchedPages,
+    };
 }

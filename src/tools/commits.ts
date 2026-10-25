@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { commitDiffPath, getClient, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeCommit, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -40,7 +40,7 @@ const commitsModule = {
                     params.path = args.path;
                 const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/commits`, { limit: args.limit, start: args.start, all: args.all, params });
                 const summaryValues = summarizeArray(result.values, summarizeCommit);
-                return jsonResult(summaryValues ?? []);
+                return jsonResult(pageResult(result, summaryValues));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
@@ -77,7 +77,7 @@ const commitsModule = {
             try {
                 const client = getClient();
                 const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/commits/${encodeURIComponent(args.commitId)}/changes`, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(result.values);
+                return jsonResult(pageResult(result, result.values));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

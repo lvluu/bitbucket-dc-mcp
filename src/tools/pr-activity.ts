@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchPage, pageResult } from "#lib/pagination.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
 const DESC_REPO_SLUG = "Repository slug";
@@ -29,7 +29,7 @@ const prActivityModule = {
             try {
                 const client = getClient();
                 const result = await fetchPage(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/activities`, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(result.values);
+                return jsonResult(pageResult(result, result.values));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
@@ -49,7 +49,7 @@ const prActivityModule = {
             try {
                 const client = getClient();
                 const result = await fetchPage(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/commits`, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(result.values);
+                return jsonResult(pageResult(result, result.values));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

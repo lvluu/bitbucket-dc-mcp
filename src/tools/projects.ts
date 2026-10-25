@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeProject, summarizeArray } from "#lib/field-filter.js";
 const projectsModule = {
     type: "tool",
@@ -30,7 +30,7 @@ const projectsModule = {
                     params,
                 });
                 const summaryValues = summarizeArray(result.values, summarizeProject);
-                return jsonResult(summaryValues ?? []);
+                return jsonResult(pageResult(result, summaryValues));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

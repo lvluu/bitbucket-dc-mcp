@@ -139,6 +139,14 @@ Every tool result is shrunk before it reaches the model: compact JSON, `links`/`
 null/empty fields removed (`false`, `0` and an empty `values` page are kept), and long text capped at
 `BITBUCKET_MAX_CHARS`. List tools also return field-trimmed summaries. Set `BITBUCKET_VERBOSE=true` for raw output.
 
+## List Results and Paging
+
+List tools return `{ values, isLastPage, nextPageStart?, truncated? }`. When `isLastPage` is `false`, pass
+`nextPageStart` as `start` to continue. `all: true` pages from `start` (default 0) up to 1000 items and sets
+`truncated: true` if it stopped at that cap. `listPRComments` and `listPRTasks` filter PR activities, so they keep
+paging until `limit` matches are found; `limit`/`start`/`nextPageStart` count activities and a call can return
+more than `limit` matches.
+
 ## Transport Modes
 
 ### HTTP Mode (Default)

@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchFiltered, pageResult } from "#lib/pagination.js";
 import { hasActiveReview, addPendingComment, reviewKey } from "#lib/review-state.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -33,19 +33,18 @@ const prCommentsModule = {
         }, async (args) => {
             try {
                 const client = getClient();
-                const result = await fetchPage<PrActivity>(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/activities`, { limit: args.limit, start: args.start, all: args.all });
                 const state = args.state ?? "UNRESOLVED";
-                const comments = result.values
-                    .filter((a) => a.action === "COMMENTED" && a.comment != null)
-                    .map((a) => a.comment as PrComment)
-                    .filter((c) => {
+                const result = await fetchFiltered<PrActivity, PrComment>(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/activities`, (a) => {
+                    if (a.action !== "COMMENTED" || a.comment == null)
+                        return undefined;
+                    const c = a.comment as PrComment;
                     if (state === "ALL")
-                        return true;
+                        return c;
                     if (state === "RESOLVED")
-                        return c.threadResolved === true;
-                    return c.threadResolved !== true; // UNRESOLVED: not resolved or no threadResolved property
-                });
-                return jsonResult(comments);
+                        return c.threadResolved === true ? c : undefined;
+                    return c.threadResolved !== true ? c : undefined; // UNRESOLVED: not resolved or no threadResolved property
+                }, { limit: args.limit, start: args.start, all: args.all });
+                return jsonResult(pageResult(result, result.values));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

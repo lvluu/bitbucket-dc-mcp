@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient, getOriginUrl } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchPage, pageResult } from "#lib/pagination.js";
 const DESC_COMMIT_ID = "Full 40-character commit hash";
 const DESC_ITEMS_PER_PAGE = "Items per page";
 const DESC_START_INDEX = "Start index";
@@ -32,7 +32,7 @@ const buildStatusModule = {
                 if (args.key !== undefined)
                     params.key = args.key;
                 const result = await fetchPage(client, buildStatusPath(args.commitId), { limit: args.limit, start: args.start, all: args.all, params });
-                return jsonResult(result.values);
+                return jsonResult(pageResult(result, result.values));
             }
             catch (error) {
                 return {

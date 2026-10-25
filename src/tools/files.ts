@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient, repoFilePath, repoPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchPage, pageResult } from "#lib/pagination.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
 const DESC_REPO_SLUG = "Repository slug";
@@ -105,7 +105,7 @@ const filesModule = {
                 if (args.at !== undefined)
                     params.at = args.at;
                 const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/files`, { limit: args.limit, start: args.start, all: args.all, params });
-                return jsonResult(result.values);
+                return jsonResult(pageResult(result, result.values));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

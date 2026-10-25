@@ -2,7 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { getClient, repoPath, prPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
-import { fetchPage } from "#lib/pagination.js";
+import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizePullRequest, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -45,7 +45,7 @@ const pullRequestsModule = {
                     params,
                 });
                 const summaryValues = summarizeArray(result.values, summarizePullRequest);
-                return jsonResult(summaryValues ?? []);
+                return jsonResult(pageResult(result, summaryValues));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
