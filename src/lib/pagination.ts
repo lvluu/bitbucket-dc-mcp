@@ -111,19 +111,23 @@ export async function fetchPage<T = Record<string, unknown>>(client: AxiosInstan
 }
 
 export interface ListPage<R = unknown> {
-    values: R[];
     isLastPage: boolean;
     nextPageStart?: number;
     truncated?: true;
+    values: R[];
 }
 
-/** Wrap list values with the paging metadata so callers can tell truncation from completeness. */
+/**
+ * Wrap list values with the paging metadata so callers can tell truncation from completeness.
+ * Metadata keys come BEFORE values: a BITBUCKET_MAX_CHARS cut trims the tail, never the metadata.
+ */
 export function pageResult<R>(page: Pick<PageResult, "isLastPage" | "nextPageStart" | "truncated">, values: R[] | undefined): ListPage<R> {
-    const out: ListPage<R> = { values: values ?? [], isLastPage: page.isLastPage };
+    const out: ListPage<R> = { isLastPage: page.isLastPage, values: [] };
     if (page.nextPageStart !== undefined && !page.isLastPage)
         out.nextPageStart = page.nextPageStart;
     if (page.truncated === true)
         out.truncated = true;
+    out.values = values ?? [];
     return out;
 }
 

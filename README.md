@@ -143,9 +143,9 @@ null/empty fields removed (`false`, `0` and an empty `values` page are kept), an
 
 List tools return `{ values, isLastPage, nextPageStart?, truncated? }`. When `isLastPage` is `false`, pass
 `nextPageStart` as `start` to continue. `all: true` pages from `start` (default 0) up to 1000 items and sets
-`truncated: true` if it stopped at that cap. `listPRComments` and `listPRTasks` filter PR activities, so they keep
-paging until `limit` matches are found; `limit`/`start`/`nextPageStart` count activities and a call can return
-more than `limit` matches.
+`truncated: true` if it stopped at that cap. `listPRComments` and `listPRTasks` filter PR activities: `limit` is the
+minimum number of matches to collect, `start`/`nextPageStart` are activity offsets, and one call can return more than
+`limit` matches.
 
 ## Transport Modes
 

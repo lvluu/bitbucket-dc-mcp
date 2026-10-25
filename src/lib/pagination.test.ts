@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { AxiosInstance } from "axios";
+import { jsonResult } from "./errors.js";
 import { fetchFiltered, fetchPage, pageResult } from "./pagination.js";
 
 interface FakePage { values: unknown[]; isLastPage: boolean; nextPageStart?: number; start?: number }
@@ -97,5 +98,23 @@ describe("fetchFiltered", () => {
         expect(result.values).toEqual([]);
         expect(result.truncated).toBe(true);
         expect(result.nextPageStart).toBe(2);
+    });
+});
+
+describe("pageResult with the text cap", () => {
+    test("paging metadata survives a BITBUCKET_MAX_CHARS cut", () => {
+        const prev = process.env.BITBUCKET_MAX_CHARS;
+        process.env.BITBUCKET_MAX_CHARS = "80";
+        try {
+            const big = Array.from({ length: 50 }, (_, i) => ({ id: i, name: "x".repeat(20) }));
+            const text = jsonResult(pageResult({ isLastPage: false, nextPageStart: 50, truncated: true }, big)).content[0]?.text ?? "";
+            expect(text).toContain("[truncated");
+            expect(text).toContain('"nextPageStart":50');
+            expect(text).toContain('"isLastPage":false');
+        }
+        finally {
+            if (prev === undefined) delete process.env.BITBUCKET_MAX_CHARS;
+            else process.env.BITBUCKET_MAX_CHARS = prev;
+        }
     });
 });
