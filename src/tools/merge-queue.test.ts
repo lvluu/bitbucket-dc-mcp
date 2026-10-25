@@ -35,9 +35,9 @@ const parse = (res: ToolResult) => JSON.parse(res.content[0]?.text ?? "") as Rec
 const prUrl = (id: number) => `/projects/PROJ/repos/repo/pull-requests/${String(id)}`;
 
 /** GET stub: `/merge` answers canMerge per PR, the bare PR URL answers its version. */
-const getFor = (canMerge: (id: number) => boolean) => (url: string) => {
+const getFor = (canMerge: (id: number) => boolean, state?: (id: number) => string) => (url: string) => {
     const id = Number(/pull-requests\/(\d+)/.exec(url)?.[1]);
-    return Promise.resolve({ data: url.endsWith("/merge") ? { canMerge: canMerge(id) } : { version: 7 } });
+    return Promise.resolve({ data: url.endsWith("/merge") ? { canMerge: canMerge(id) } : { version: 7, state: state?.(id) } });
 };
 
 beforeEach(() => {
@@ -146,5 +146,61 @@ describe("enqueuePullRequest", () => {
         expect(body.position).toBe(1);
         expect(body.queueLength).toBe(2);
         expect(getMergeQueue(key)).toEqual([1, 2]);
+    });
+});
+
+describe("dequeuePullRequest", () => {
+    test("removes a blocked head so processing continues", async () => {
+        await run("enqueuePullRequest", { ...base, prId: 1 });
+        await run("enqueuePullRequest", { ...base, prId: 2 });
+        stub("get", getFor((id) => id !== 1));
+        stub("post", () => Promise.resolve({ data: { state: "MERGED" } }));
+        expect(parse(await run("processMergeQueue")).status).toBe("blocked");
+
+        const removed = parse(await run("dequeuePullRequest", { ...base, prId: 1 }));
+        expect(removed.remainingQueue).toEqual([2]);
+        const body = parse(await run("processMergeQueue"));
+
+        expect(body.status).toBe("completed");
+        expect((body.merged as { prId: number }[]).map((m) => m.prId)).toEqual([2]);
+        expect(getMergeQueue(key)).toEqual([]);
+    });
+
+    test("errors on a PR that is not queued", async () => {
+        const res = await run("dequeuePullRequest", { ...base, prId: 9 });
+
+        expect(res.isError).toBe(true);
+        expect(res.content[0]?.text).toBe("PR #9 is not in the merge queue for PROJ/repo");
+    });
+});
+
+describe("processMergeQueue skipping non-OPEN PRs", () => {
+    test("drops a non-OPEN head without merging it and merges the rest", async () => {
+        await run("enqueuePullRequest", { ...base, prId: 1 });
+        await run("enqueuePullRequest", { ...base, prId: 2 });
+        stub("get", getFor(() => true, (id) => (id === 1 ? "DECLINED" : "OPEN")));
+        const post = stub("post", () => Promise.resolve({ data: { state: "MERGED" } }));
+
+        const body = parse(await run("processMergeQueue"));
+
+        expect(body.status).toBe("completed");
+        expect(body.skipped).toEqual([{ prId: 1, reason: "state DECLINED" }]);
+        expect((body.merged as { prId: number }[]).map((m) => m.prId)).toEqual([2]);
+        expect(post.mock.calls.map((c) => (c as unknown[])[0])).toEqual([`${prUrl(2)}/merge`]);
+        expect(getMergeQueue(key)).toEqual([]);
+    });
+
+    test("still reports skipped PRs when a later PR is blocked", async () => {
+        await run("enqueuePullRequest", { ...base, prId: 1 });
+        await run("enqueuePullRequest", { ...base, prId: 2 });
+        stub("get", getFor((id) => id !== 2, (id) => (id === 1 ? "MERGED" : "OPEN")));
+        stub("post", () => Promise.resolve({ data: {} }));
+
+        const body = parse(await run("processMergeQueue"));
+
+        expect(body.status).toBe("blocked");
+        expect(body.blockedPrId).toBe(2);
+        expect(body.skipped).toEqual([{ prId: 1, reason: "state MERGED" }]);
+        expect(body.remainingQueue).toEqual([2]);
     });
 });

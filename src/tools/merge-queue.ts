@@ -72,8 +72,34 @@ const mergeQueueModule = {
             }
         });
 
+        server.registerTool("dequeuePullRequest", {
+            description: "Remove a pull request from the repository merge queue (e.g. a blocked, declined or mistyped PR) and return the remaining queue",
+            inputSchema: {
+                projectKey: z.string().describe(DESC_PROJECT_KEY),
+                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                prId: z.coerce.number().describe(DESC_PR_ID),
+            },
+        }, (args) => {
+            try {
+                const key = mergeQueueKey(args.projectKey, args.repoSlug);
+                if (dequeuePullRequest(key, args.prId) === undefined) {
+                    return { content: [{ type: "text", text: `PR #${String(args.prId)} is not in the merge queue for ${key}` }], isError: true };
+                }
+                const remainingQueue = getMergeQueue(key);
+                return jsonResult({
+                    projectKey: args.projectKey,
+                    repoSlug: args.repoSlug,
+                    prId: args.prId,
+                    remainingQueue,
+                    total: remainingQueue.length,
+                });
+            } catch (error) {
+                return { content: [{ type: "text", text: formatError(error) }], isError: true };
+            }
+        });
+
         server.registerTool("processMergeQueue", {
-            description: "Process queued pull requests in order: merge those whose mergeability check passes, stopping at the first that cannot merge",
+            description: "Process queued pull requests in order: drop (and report as skipped) those that are no longer OPEN, merge those whose mergeability check passes, stopping at the first that cannot merge",
             inputSchema: {
                 projectKey: z.string().describe(DESC_PROJECT_KEY),
                 repoSlug: z.string().describe(DESC_REPO_SLUG),
@@ -86,6 +112,7 @@ const mergeQueueModule = {
                 return { content: [{ type: "text", text: `processMergeQueue is already running for ${key}` }], isError: true };
             }
             const merged: Array<{ prId: number; result: unknown }> = [];
+            const skipped: Array<{ prId: number; reason: string }> = [];
             let currentPrId: number | undefined;
             try {
                 const client = getClient();
@@ -98,6 +125,15 @@ const mergeQueueModule = {
                     const prId = queue[0];
                     currentPrId = prId;
 
+                    const currentPr = await client.get<{ version?: number; state?: string }>(prPath(args.projectKey, args.repoSlug, prId));
+                    const prState = currentPr.data.state;
+                    if (typeof prState === "string" && prState !== "OPEN") {
+                        // Declined/merged outside the queue: drop it instead of blocking the repo
+                        dequeuePullRequest(key, prId);
+                        skipped.push({ prId, reason: `state ${prState}` });
+                        continue;
+                    }
+
                     // Check mergeability: GET /projects/{projectKey}/repos/{repoSlug}/pull-requests/{id}/merge
                     const checkRes = await client.get<MergeabilityResponse>(`${prPath(args.projectKey, args.repoSlug, prId)}/merge`);
                     const mergeInfo = checkRes.data;
@@ -109,12 +145,11 @@ const mergeQueueModule = {
                             blockedPrId: prId,
                             reason: mergeInfo,
                             merged,
+                            skipped,
                             remainingQueue: getMergeQueue(key),
                         });
                     }
 
-                    // PR can merge -> get version to merge
-                    const currentPr = await client.get(prPath(args.projectKey, args.repoSlug, prId));
                     const mergeData: Record<string, unknown> = {
                         version: currentPr.data.version,
                     };
@@ -140,6 +175,7 @@ const mergeQueueModule = {
                 return jsonResult({
                     status: "completed",
                     merged,
+                    skipped,
                     remainingQueue: getMergeQueue(key),
                 });
             } catch (error) {
@@ -149,6 +185,7 @@ const mergeQueueModule = {
                         error: formatError(error),
                         failedPrId: currentPrId,
                         merged,
+                        skipped,
                         remainingQueue: getMergeQueue(key),
                     }),
                     isError: true,

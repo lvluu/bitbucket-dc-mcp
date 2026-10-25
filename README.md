@@ -21,7 +21,7 @@ This server lets MCP-compatible clients (Claude Desktop, VS Code, IDEs, custom a
 - **Commits** — list, get, changes, diff (whole commit or one file via `path`)
 - **Files** — browse, read, edit, recursive listing
 - **Build Status** — build statuses per commit, build statistics
-- **Merge Queue** — enqueue, view, and process per-repository merge queues
+- **Merge Queue** — enqueue, view, dequeue, and process per-repository merge queues
 
 ```mermaid
 graph LR
@@ -45,6 +45,7 @@ Once connected, try asking your AI assistant:
 - "Who approved PR #21 and what comments were left?"
 - "Enqueue PR #5 into the merge queue for PROJ/my-repo"
 - "Show me the merge queue for PROJ/my-repo"
+- "Remove PR #5 from the merge queue for PROJ/my-repo"
 - "Process the merge queue for PROJ/my-repo"
 
 ## Installation
