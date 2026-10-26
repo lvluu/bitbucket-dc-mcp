@@ -64,6 +64,41 @@ describe("fetchPage", () => {
         expect(result.start).toBe(5);
         expect(calls(get)[0]?.start).toBe(5);
     });
+
+    test("a page with no values cannot loop forever (#8)", async () => {
+        let requests = 0;
+        const get = mock((_path: string, config: { params: Record<string, unknown> }) => {
+            requests++;
+            if (requests > 20)
+                throw new Error("pagination did not stop");
+            const start = (config.params.start as number | undefined) ?? 0;
+            return Promise.resolve({ data: { values: [], isLastPage: false, nextPageStart: start + 1 } });
+        });
+        const client = { get } as unknown as AxiosInstance;
+        const result = await fetchPage<number>(client, "/x", { limit: 2, all: true, maxItems: 10 });
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(result.values).toEqual([]);
+        expect(result.isLastPage).toBe(false);
+        expect(result.truncated).toBe(true);
+        expect(result.nextPageStart).toBe(1);
+    });
+
+    test("a nextPageStart that does not advance stops the scan (#8)", async () => {
+        let requests = 0;
+        const get = mock((_path: string, config: { params: Record<string, unknown> }) => {
+            requests++;
+            if (requests > 20)
+                throw new Error("pagination did not stop");
+            const start = (config.params.start as number | undefined) ?? 0;
+            return Promise.resolve({ data: { values: [start], isLastPage: false, nextPageStart: 2 } });
+        });
+        const client = { get } as unknown as AxiosInstance;
+        const result = await fetchPage<number>(client, "/x", { limit: 2, all: true, maxItems: 10 });
+        expect(get).toHaveBeenCalledTimes(2);
+        expect(result.values).toEqual([0, 2]);
+        expect(result.truncated).toBe(true);
+        expect(result.nextPageStart).toBe(2);
+    });
 });
 
 describe("fetchFiltered", () => {
@@ -77,6 +112,22 @@ describe("fetchFiltered", () => {
         const result = await fetchFiltered<number, number>(client, "/x", pick, { limit: 1 });
         expect(result.values).toEqual([4, 6]);
         expect(get).toHaveBeenCalledTimes(2);
+    });
+
+    test("a filtered scan with no new items cannot loop forever (#8)", async () => {
+        let requests = 0;
+        const get = mock((_path: string, config: { params: Record<string, unknown> }) => {
+            requests++;
+            if (requests > 20)
+                throw new Error("pagination did not stop");
+            const start = (config.params.start as number | undefined) ?? 0;
+            return Promise.resolve({ data: { values: [], isLastPage: false, nextPageStart: start + 1 } });
+        });
+        const client = { get } as unknown as AxiosInstance;
+        const result = await fetchFiltered<number, number>(client, "/x", pick, { limit: 1, maxItems: 10 });
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(result.values).toEqual([]);
+        expect(result.truncated).toBe(true);
     });
 
     test("stops once limit matches are found and keeps the continuation point", async () => {

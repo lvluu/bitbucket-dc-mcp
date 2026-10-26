@@ -58,7 +58,10 @@ async function fetchAllPages<T>(client: AxiosInstance, path: string, params: Rec
     let lastLimit = resolvedLimit;
     let isLastPage = false;
     let nextPageStart: number | undefined;
-    while (aggregated.length < maxItems) {
+    // Every page that makes progress adds at least one item, so more pages than
+    // maxItems means the server is not moving the feed forward (#8).
+    const maxPages = maxItems + 1;
+    while (aggregated.length < maxItems && fetchedPages < maxPages) {
         // Never overshoot the cap, so the server's nextPageStart is a correct continuation point.
         const pageParams: Record<string, unknown> = {
             ...params,
@@ -77,6 +80,11 @@ async function fetchAllPages<T>(client: AxiosInstance, path: string, params: Rec
         nextPageStart = isLastPage ? undefined : data.nextPageStart;
         if (isLastPage || nextPageStart === undefined) {
             isLastPage = true;
+            break;
+        }
+        // An empty page, or one whose continuation does not move forward, would
+        // otherwise be requested again until the item cap: stop as truncated (#8).
+        if (values.length === 0 || nextPageStart <= (nextStart ?? -1)) {
             break;
         }
         nextStart = nextPageStart;
@@ -145,7 +153,10 @@ export async function fetchFiltered<T, R>(client: AxiosInstance, path: string, p
     let nextStart = start;
     let isLastPage = false;
     let nextPageStart: number | undefined;
-    while (matches.length < wanted && scanned < maxItems) {
+    // As in fetchAllPages: a page that makes progress scans at least one item,
+    // so a feed that needs more pages than maxItems is not moving forward (#8).
+    const maxPages = maxItems + 1;
+    while (matches.length < wanted && scanned < maxItems && fetchedPages < maxPages) {
         const pageParams: Record<string, unknown> = { ...params, limit: Math.min(DC_MAX_LIMIT, maxItems - scanned) };
         if (nextStart !== undefined)
             pageParams.start = nextStart;
@@ -162,6 +173,11 @@ export async function fetchFiltered<T, R>(client: AxiosInstance, path: string, p
         nextPageStart = isLastPage ? undefined : response.data.nextPageStart;
         if (nextPageStart === undefined) {
             isLastPage = true;
+            break;
+        }
+        // An empty page, or one whose continuation does not move forward, would
+        // otherwise be requested again until the scan cap (#8).
+        if (values.length === 0 || nextPageStart <= (nextStart ?? -1)) {
             break;
         }
         nextStart = nextPageStart;
