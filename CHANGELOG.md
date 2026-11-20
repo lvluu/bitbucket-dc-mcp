@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.7.0...v1.8.0) (2026-11-20)
+
+
+### Features
+
+* add repository insight tools - code search, blame, PR settings, default reviewers, branch restrictions ([#58](https://github.com/lvluu/bitbucket-dc-mcp/issues/58)) ([#62](https://github.com/lvluu/bitbucket-dc-mcp/issues/62)) ([a93acde](https://github.com/lvluu/bitbucket-dc-mcp/commit/a93acde5c54393799176d3011e87b2d7663fd03e))
+
 ## [1.7.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.6.0...v1.7.0) (2026-10-26)
 
 
