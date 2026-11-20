@@ -125,6 +125,7 @@ test("every Bitbucket DC tool works end to end", async () => {
     { name: "approvePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "unapprovePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "addPullRequestReviewers", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, reviewers: ["bob", "carol"] } },
+    { name: "removePullRequestReviewer", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, username: "bob" } },
     { name: "markPullRequestAsDraft", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, draft: true } },
     { name: "canMergePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "declinePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 4, message: "not now" } },
@@ -137,6 +138,8 @@ test("every Bitbucket DC tool works end to end", async () => {
     { name: "createTag", args: { projectKey: "PROJ", repoSlug: repo, name: "v9.9.9", startPoint: commitId } },
 
     { name: "listCommits", args: { projectKey: "PROJ", repoSlug: repo, all: true } },
+    { name: "compareRefs", args: { projectKey: "PROJ", repoSlug: repo, from: "main", to: "feature/login" } },
+    { name: "getUser", args: { username: "alice" } },
     { name: "getCommit", args: { projectKey: "PROJ", repoSlug: repo, commitId } },
     { name: "getCommitChanges", args: { projectKey: "PROJ", repoSlug: repo, commitId } },
     { name: "getCommitDiff", args: { projectKey: "PROJ", repoSlug: repo, commitId, contextLines: 2 } },

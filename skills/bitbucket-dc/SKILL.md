@@ -22,6 +22,8 @@ https://github.com/lvluu/bitbucket-dc-mcp/blob/main/docs/agent-install.md
   for one file.
 - Lists are paged: read `isLastPage` / `nextPageStart`; use `all: true` only when you need everything (cap 1000).
 - `listPRComments` returns unresolved comments by default; pass `state: ALL` only when asked.
+- Compare two branches/tags/hashes with `compareRefs` (commits reachable from `to` but not `from`). Look up a
+  user's display name / email with `getUser`; `removePullRequestReviewer` undoes `addPullRequestReviewers`.
 - Large text is cut at `BITBUCKET_MAX_CHARS` with a note; narrow the request instead of retrying.
 
 ## Repository insight
