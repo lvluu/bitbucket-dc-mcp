@@ -46,7 +46,8 @@ Equivalent npm scripts exist (`bun run typecheck`, `bun run test:e2e`,
 - New list/entity tool: add a summarizer in `field-filter.ts`.
 - New noisy response key: add it to `NOISE_KEYS` in `squeeze.ts`.
 - Add a `bun:test` test for any squeeze change; keep error text to one line, no stack traces.
-- New environment variable: document it in the `README.md` table only.
+- New environment variable: document it in the `docs/configuration.md` table only.
+- New tool: add it to `docs/tools.md` (and the count in `README.md`); new workflow hint for agents: `skills/bitbucket-dc/SKILL.md`.
 - Keep `@modelcontextprotocol/sdk` pinned to `~1.25` — 1.32 + TypeScript 7 breaks
   zod schema typing.
 
@@ -85,8 +86,8 @@ docs: document the BITBUCKET_MAX_CHARS variable
 ## Releasing
 
 Maintainers only: merge the release-please PR. Merging tags the release and the
-`Release` workflow publishes to npm with provenance. See the README for the
-one-time `NPM_TOKEN` setup.
+`Release` workflow publishes to npm via trusted publishing (OIDC). See
+[docs/development.md](docs/development.md#releasing).
 
 ## License
 
