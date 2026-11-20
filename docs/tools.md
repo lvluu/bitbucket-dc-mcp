@@ -1,6 +1,6 @@
 # Tools
 
-64 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
+69 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
 
 | Group | Tools |
 |-------|-------|
@@ -18,6 +18,7 @@
 | Builds | `getBuildStatuses`, `getBuildStatusStats` |
 | Merge queue | `enqueuePullRequest`, `getMergeQueue`, `dequeuePullRequest`, `processMergeQueue` |
 | Webhooks | `listRepositoryWebhooks` |
+| Repository insight | `searchCode`, `getFileBlame`, `getPullRequestSettings`, `getDefaultReviewers`, `getBranchRestrictions` |
 
 † Needs `BITBUCKET_ENABLE_DANGEROUS=true`.
 
