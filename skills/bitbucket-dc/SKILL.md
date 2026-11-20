@@ -24,6 +24,13 @@ https://github.com/lvluu/bitbucket-dc-mcp/blob/main/docs/agent-install.md
 - `listPRComments` returns unresolved comments by default; pass `state: ALL` only when asked.
 - Large text is cut at `BITBUCKET_MAX_CHARS` with a note; narrow the request instead of retrying.
 
+## Repository insight
+
+- `searchCode` searches code across a repository (e.g. a function name or `TODO`); pass `all: true` for everything.
+- `getFileBlame` returns blame per line; pass `noContent: true` for blame only. `at` scopes to a branch/commit.
+- `getPullRequestSettings` shows merge config and required approvers; `getDefaultReviewers` lists the default
+  reviewers, `getBranchRestrictions` the branch permissions.
+
 ## Review a PR
 
 1. `getPullRequest`, then `getPullRequestChanges`.

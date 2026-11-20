@@ -152,6 +152,49 @@ export function summarizeWebhook(webhook: Loose): Loose {
     };
 }
 /**
+ * Summarizes a default-reviewer pull request condition.
+ */
+export function summarizePullRequestCondition(condition: Loose): Loose {
+    const reviewers = Array.isArray(condition.reviewers)
+        ? condition.reviewers.map((r: Loose) => {
+            const user = r.user as UserLike | undefined;
+            return { name: user?.name, displayName: user?.displayName };
+        })
+        : undefined;
+    return {
+        id: condition.id,
+        sourceMatcher: condition.sourceMatcher,
+        targetMatcher: condition.targetMatcher,
+        reviewers,
+        requiredApprovals: condition.requiredApprovals,
+    };
+}
+/**
+ * Summarizes a branch restriction (branch permission).
+ */
+export function summarizeRestriction(restriction: Loose): Loose {
+    return {
+        id: restriction.id,
+        type: restriction.type,
+        matcher: restriction.matcher,
+        users: restriction.users,
+        groups: restriction.groups,
+        inherited: restriction.inherited,
+    };
+}
+/**
+ * Summarizes a code-search result hit.
+ */
+export function summarizeCodeSearchResult(hit: Loose): Loose {
+    const file = hit.file as { path?: unknown } | undefined;
+    return {
+        path: file?.path ?? hit.path,
+        line: hit.line,
+        context: hit.context,
+        text: hit.text,
+    };
+}
+/**
  * Maps an array of items through a summarizer function.
  * Returns undefined if the array is empty.
  */
