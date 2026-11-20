@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.8.0...v1.9.0) (2026-11-20)
+
+
+### Features
+
+* add getUser, removePullRequestReviewer and compareRefs tools ([#64](https://github.com/lvluu/bitbucket-dc-mcp/issues/64)) ([52440e2](https://github.com/lvluu/bitbucket-dc-mcp/commit/52440e2decc23a5b5ad11103fd215ea4e7973bcb))
+
 ## [1.8.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.7.0...v1.8.0) (2026-11-20)
 
 
