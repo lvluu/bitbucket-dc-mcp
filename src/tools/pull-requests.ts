@@ -352,6 +352,24 @@ const pullRequestsModule = {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
             }
         });
+        server.registerTool("removePullRequestReviewer", {
+            description: "Remove a reviewer from an existing pull request.",
+            inputSchema: {
+                projectKey: z.string().describe(DESC_PROJECT_KEY),
+                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                prId: z.coerce.number().describe(DESC_PR_ID),
+                username: z.string().describe("Username of the reviewer to remove"),
+            },
+        }, async (args) => {
+            try {
+                const client = getClient();
+                await client.delete(`${prPath(args.projectKey, args.repoSlug, args.prId)}/participants/${encodeURIComponent(args.username)}`);
+                return textResult(`Reviewer '${args.username}' removed from pull request ${String(args.prId)}.`);
+            }
+            catch (error) {
+                return { content: [{ type: "text", text: formatError(error) }], isError: true };
+            }
+        });
     },
 };
 export default pullRequestsModule;

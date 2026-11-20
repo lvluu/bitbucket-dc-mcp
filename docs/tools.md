@@ -1,12 +1,12 @@
 # Tools
 
-69 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
+72 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
 
 | Group | Tools |
 |-------|-------|
 | Projects | `listProjects`, `getProject`, `createProject`, `updateProject` |
 | Repositories | `listRepositories`, `getRepository`, `createRepository`, `forkRepository`, `getDefaultBranch`, `setDefaultBranch` |
-| Pull requests | `listPullRequests`, `getPullRequest`, `createPullRequest`, `updatePullRequest`, `mergePullRequest`, `declinePullRequest`, `reopenPullRequest`, `approvePullRequest`, `unapprovePullRequest`, `markPullRequestAsDraft`, `canMergePullRequest`, `addPullRequestReviewers` |
+| Pull requests | `listPullRequests`, `getPullRequest`, `createPullRequest`, `updatePullRequest`, `mergePullRequest`, `declinePullRequest`, `reopenPullRequest`, `approvePullRequest`, `unapprovePullRequest`, `markPullRequestAsDraft`, `canMergePullRequest`, `addPullRequestReviewers`, `removePullRequestReviewer` |
 | PR comments | `listPRComments` (unresolved by default), `addPRComment`, `getPRComment`, `updatePRComment`, `resolvePRComment`, `reopenPRComment`, `deletePRComment`† |
 | PR review sessions | `startReview`, `listPendingReviewComments`, `finishReview`, `discardReview` |
 | PR tasks | `listPRTasks`, `addBlockerComment`, `resolveTask`, `reopenTask` |
@@ -14,6 +14,8 @@
 | PR activity | `getPullRequestActivity`, `getPullRequestCommits`, `getPullRequestParticipants` |
 | Branches & tags | `listBranches`, `createBranch`, `deleteBranch`†, `listTags`, `createTag` |
 | Commits | `listCommits`, `getCommit`, `getCommitChanges`, `getCommitDiff` (whole commit or one `path`) |
+| Compare refs | `compareRefs` |
+| Users | `getUser` |
 | Files | `browseFiles`, `getFileContent`, `listFiles`, `editFile` |
 | Builds | `getBuildStatuses`, `getBuildStatusStats` |
 | Merge queue | `enqueuePullRequest`, `getMergeQueue`, `dequeuePullRequest`, `processMergeQueue` |

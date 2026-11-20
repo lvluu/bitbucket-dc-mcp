@@ -338,6 +338,16 @@ on("PUT", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/default-branch
   json(res, 200, repo.defaultBranch);
 });
 
+// users
+on("GET", /^\/rest\/api\/1\.0\/users\/([^/]+)$/, (req, res, url, m) => {
+  json(res, 200, user(decodeURIComponent(m[1])));
+});
+
+// compare refs
+on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/compare\/commits$/, (req, res, url) => {
+  json(res, 200, paged(COMMITS.slice(0, 8), url));
+});
+
 // pull requests
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests$/, (req, res, url, m) => {
   const list = state.prs[decodeURIComponent(m[1])]?.[decodeURIComponent(m[2])] ?? [];
@@ -419,6 +429,13 @@ on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\
   const pr = findPR(decodeURIComponent(m[1]), decodeURIComponent(m[2]), m[3]);
   if (!pr) return notFound(res, url.pathname);
   json(res, 200, { values: [pr.author, ...pr.reviewers], size: 1 + pr.reviewers.length, limit: 25, isLastPage: true });
+});
+on("DELETE", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/participants\/([^/]+)$/, (req, res, url, m) => {
+  const pr = findPR(decodeURIComponent(m[1]), decodeURIComponent(m[2]), m[3]);
+  if (!pr) return notFound(res, url.pathname);
+  const name = decodeURIComponent(m[4]);
+  pr.reviewers = (pr.reviewers ?? []).filter((r) => r.name !== name);
+  noContent(res);
 });
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/activities$/, (req, res, url, m) => {
   json(res, 200, paged(activitiesFor(decodeURIComponent(m[1]), decodeURIComponent(m[2]), m[3]), url));
