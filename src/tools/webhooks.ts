@@ -13,7 +13,7 @@ const webhooksModule = {
     description: "Bitbucket DC webhook operations",
     register(server: McpServer): void {
         server.registerTool("listRepositoryWebhooks", {
-            description: "List webhooks for a repository in Bitbucket DC",
+            description: "List repository webhooks",
             inputSchema: {
                 ...repoArgs,
                 ...pageArgs,

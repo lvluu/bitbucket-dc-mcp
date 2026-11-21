@@ -15,7 +15,7 @@ Set variables in the client's `env` block, your shell, or a `.env` file in the w
 | `BITBUCKET_TIMEOUT_MS` | No | Per-request timeout in milliseconds; a request exceeding it fails instead of hanging | `30000` |
 | `BITBUCKET_VERBOSE` | No | Disable the token squeeze (pretty JSON, no field stripping, no text cap) | `false` |
 | `BITBUCKET_MAX_CHARS` | No | Cap per text result (diffs, patches, raw files); appends a truncation note | `60000` |
-| `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `http` |
+| `MCP_TRANSPORT` | No | Transport mode: `stdio` or `http` | `stdio` when stdin is not a terminal, else `http` |
 | `PORT` | No | HTTP server port | `3000` |
 | `HOST` | No | HTTP bind address; set `0.0.0.0` in containers. A warning is logged when non-loopback and `MCP_AUTH_TOKEN` is unset | `127.0.0.1` |
 | `MCP_AUTH_TOKEN` | No | HTTP mode: when set, `/mcp` requires `Authorization: Bearer <token>` (401 otherwise); `/health` stays open | — |
@@ -27,10 +27,13 @@ Set variables in the client's `env` block, your shell, or a `.env` file in the w
 
 ## Transports
 
-**stdio** (`MCP_TRANSPORT=stdio`): the client starts the server as a child process. Use this for Claude Code,
-Claude Desktop, VS Code, Cursor and Codex. The default is `http`, so set it explicitly in client configs.
+When `MCP_TRANSPORT` is unset, the server picks **stdio** if stdin is not a terminal (an MCP client started it)
+and **HTTP** if you run it in a terminal. An explicit value always wins: set `MCP_TRANSPORT=http` for a server
+run by Docker, systemd or any other process manager, where stdin is not a terminal either.
 
-**HTTP** (default): Streamable HTTP at `http://127.0.0.1:3000/mcp`.
+**stdio**: the client starts the server as a child process (Claude Code, Claude Desktop, VS Code, Cursor, Codex).
+
+**HTTP**: Streamable HTTP at `http://127.0.0.1:3000/mcp`.
 
 | Endpoint | Purpose |
 |----------|---------|
@@ -56,7 +59,7 @@ The server holds your Bitbucket credentials and every tool runs with them.
 
 ```bash
 docker run -p 3000:3000 \
-  -e HOST=0.0.0.0 -e MCP_AUTH_TOKEN="$(openssl rand -hex 32)" \
+  -e MCP_TRANSPORT=http -e HOST=0.0.0.0 -e MCP_AUTH_TOKEN="$(openssl rand -hex 32)" \
   -e BITBUCKET_URL=https://bitbucket.example.com -e BITBUCKET_TOKEN=your-token \
   your-image-with-bitbucket-dc-mcp
 ```
@@ -66,7 +69,8 @@ docker run -p 3000:3000 \
 | Issue | Fix |
 |-------|-----|
 | `BITBUCKET_URL is required` | Set `BITBUCKET_URL` in the client `env` block or `.env` |
-| Client shows no tools / hangs on start | Add `MCP_TRANSPORT=stdio` to the client `env` block |
+| Client shows no tools / hangs on start | Remove any `MCP_TRANSPORT=http` from the client `env` block (or set `stdio`) |
+| Server in Docker/systemd exits at once | Set `MCP_TRANSPORT=http`: without a terminal it defaults to stdio |
 | `401 Unauthorized` | Check the token, or username + password |
 | `404` on every call | `BITBUCKET_URL` must include the context path, e.g. `https://host/bitbucket` |
 | `deleteBranch is disabled` | Set `BITBUCKET_ENABLE_DANGEROUS=true` |

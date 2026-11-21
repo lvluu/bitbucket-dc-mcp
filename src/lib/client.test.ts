@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { commitDiffPath, encodePath, getClient, initClient, repoPath } from "./client.js";
+import { branchRef, commitDiffPath, encodePath, getClient, initClient, repoPath } from "./client.js";
 
 describe("encodePath", () => {
     test("keeps slashes between segments and encodes each segment", () => {
@@ -36,5 +36,13 @@ describe("initClient timeout", () => {
 describe("repoPath", () => {
     test("encodes project key and repo slug", () => {
         expect(repoPath("~user", "re/po?")).toBe("/projects/~user/repos/re%2Fpo%3F");
+    });
+});
+
+describe("branchRef", () => {
+    test("short and full names give the same ref", () => {
+        expect(branchRef("feature/x")).toBe("refs/heads/feature/x");
+        expect(branchRef("refs/heads/feature/x")).toBe("refs/heads/feature/x");
+        expect(branchRef("refs/tags/v1")).toBe("refs/tags/v1");
     });
 });

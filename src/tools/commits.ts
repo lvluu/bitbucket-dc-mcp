@@ -39,7 +39,7 @@ const commitsModule = {
             }
         });
         server.registerTool("getCommit", {
-            description: "Get details of a specific commit",
+            description: "Get a commit",
             inputSchema: {
                 ...repoArgs,
                 commitId: z.string(),
@@ -55,7 +55,7 @@ const commitsModule = {
             }
         });
         server.registerTool("getCommitChanges", {
-            description: "Get list of files changed in a commit",
+            description: "List files changed in a commit",
             inputSchema: {
                 ...repoArgs,
                 commitId: z.string(),

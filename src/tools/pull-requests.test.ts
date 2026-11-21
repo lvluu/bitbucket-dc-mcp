@@ -67,3 +67,62 @@ describe("default project (#54)", () => {
         expect(result.content[0]?.text).toBe("projectKey is required (or set BITBUCKET_DEFAULT_PROJECT)");
     });
 });
+
+describe("createPullRequest refs and forks (#50)", () => {
+    const run = (args: Record<string, unknown>) => {
+        const handler = handlers.get("createPullRequest");
+        if (handler === undefined) throw new Error("createPullRequest not registered");
+        const post = mock(() => Promise.resolve({ data: {} }));
+        originalPost = client().post;
+        client().post = post;
+        return Promise.resolve(handler({ projectKey: "PROJ", repoSlug: "repo", title: "t", ...args })).then(() => (post.mock.calls[0] as unknown[])[1] as Record<string, { id: string; repository: unknown }>);
+    };
+    test("short and full branch names give the same ref", async () => {
+        const body = await run({ sourceBranch: "refs/heads/feature/x", targetBranch: "main" });
+        expect(body.fromRef?.id).toBe("refs/heads/feature/x");
+        expect(body.toRef?.id).toBe("refs/heads/main");
+    });
+    test("same-repo PR uses the target repo as source", async () => {
+        const body = await run({ sourceBranch: "a", targetBranch: "b" });
+        expect(body.fromRef?.repository).toEqual({ slug: "repo", project: { key: "PROJ" } });
+    });
+    test("fork PR points fromRef at the fork", async () => {
+        const body = await run({ sourceBranch: "a", targetBranch: "b", sourceProjectKey: "~USER" });
+        expect(body.fromRef?.repository).toEqual({ slug: "repo", project: { key: "~USER" } });
+        expect(body.toRef?.repository).toEqual({ slug: "repo", project: { key: "PROJ" } });
+    });
+});
+
+describe("updatePullRequest (#51)", () => {
+    const current = { title: "old", description: "d", version: 3, toRef: { id: "refs/heads/main", displayId: "main", repository: { slug: "repo" } }, reviewers: [{ user: { name: "alice" } }] };
+    let originalGet: unknown;
+    let originalPut: unknown;
+    afterEach(() => {
+        client().get = originalGet;
+        client().put = originalPut;
+    });
+    const run = async (args: Record<string, unknown>) => {
+        originalGet = client().get;
+        originalPut = client().put;
+        client().get = mock(() => Promise.resolve({ data: current }));
+        const put = mock(() => Promise.resolve({ data: {} }));
+        client().put = put;
+        const handler = handlers.get("updatePullRequest");
+        if (handler === undefined) throw new Error("updatePullRequest not registered");
+        await handler({ projectKey: "PROJ", repoSlug: "repo", prId: 7, ...args });
+        return (put.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+    };
+    test("targetBranch retargets toRef", async () => {
+        const body = await run({ targetBranch: "develop" });
+        expect(body.toRef).toEqual({ id: "refs/heads/develop", repository: { slug: "repo" } });
+        expect(body.version).toBe(3);
+    });
+    test("reviewers replaces the list", async () => {
+        const body = await run({ reviewers: ["bob", " "] });
+        expect(body.reviewers).toEqual([{ user: { name: "bob" } }]);
+    });
+    test("a title-only update keeps title-unrelated fields as they are", async () => {
+        const body = await run({ title: "new" });
+        expect(body).toMatchObject({ title: "new", description: "d", toRef: current.toRef, reviewers: current.reviewers });
+    });
+});

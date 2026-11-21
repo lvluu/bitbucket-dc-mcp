@@ -14,7 +14,7 @@ const buildStatusModule = {
     description: "Bitbucket DC build status operations",
     register(server: McpServer): void {
         server.registerTool("getBuildStatuses", {
-            description: "Get build statuses for a specific commit",
+            description: "Get build statuses of a commit",
             inputSchema: {
                 commitId: z.string(),
                 key: z.string().optional().describe("Filter by a specific build key"),

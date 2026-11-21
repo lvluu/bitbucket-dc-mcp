@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { prArgs, pageArgs } from "#lib/params.js";
+import { prArgs, pageArgs, anchorArgs, buildAnchor } from "#lib/params.js";
 import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
@@ -8,6 +8,10 @@ import { fetchFiltered, pageResult } from "#lib/pagination.js";
 import { summarizeArray, summarizeComment } from "#lib/field-filter.js";
 import { hasActiveReview, addPendingComment, reviewKey } from "#lib/review-state.js";
 // Shared description constants
+/** A thread resolved in the UI, or a task (blocker) resolved via resolveTask. */
+function isResolved(c: PrComment): boolean {
+    return c.threadResolved === true || c.state === "RESOLVED";
+}
 const prCommentsModule = {
     type: "tool",
     name: "pr-comments",
@@ -30,9 +34,7 @@ const prCommentsModule = {
                     const c = a.comment as PrComment;
                     if (state === "ALL")
                         return c;
-                    if (state === "RESOLVED")
-                        return c.threadResolved === true ? c : undefined;
-                    return c.threadResolved !== true ? c : undefined; // UNRESOLVED: not resolved or no threadResolved property
+                    return (state === "RESOLVED") === isResolved(c) ? c : undefined;
                 }, { limit: args.limit, start: args.start, all: args.all });
                 const summaryValues = summarizeArray(result.values, summarizeComment);
                 return jsonResult(pageResult(result, summaryValues));
@@ -47,10 +49,7 @@ const prCommentsModule = {
                 ...prArgs,
                 text: z.string(),
                 parentId: z.coerce.number().optional().describe("Reply to this comment"),
-                anchorPath: z.string().optional().describe("Inline: file path"),
-                anchorLine: z.coerce.number().optional().describe("Inline: line"),
-                anchorLineType: z.enum(["ADDED", "REMOVED", "CONTEXT"]).optional().describe("Line type for inline comment"),
-                anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM=old, TO=new file"),
+                ...anchorArgs,
                 severity: z.enum(["NORMAL", "BLOCKER"]).optional().describe("BLOCKER = task"),
             },
         }, async (args) => {
@@ -59,19 +58,9 @@ const prCommentsModule = {
                 if (args.parentId !== undefined) {
                     body.parent = { id: args.parentId };
                 }
-                if (args.anchorPath !== undefined) {
-                    const anchor: Record<string, unknown> = {
-                        path: args.anchorPath,
-                        diffType: "EFFECTIVE",
-                    };
-                    if (args.anchorLine !== undefined)
-                        anchor.line = args.anchorLine;
-                    if (args.anchorLineType !== undefined)
-                        anchor.lineType = args.anchorLineType;
-                    if (args.anchorFileType !== undefined)
-                        anchor.fileType = args.anchorFileType;
+                const anchor = buildAnchor(args);
+                if (anchor !== undefined)
                     body.anchor = anchor;
-                }
                 if (args.severity !== undefined) {
                     body.severity = args.severity;
                 }
@@ -90,7 +79,7 @@ const prCommentsModule = {
             }
         });
         server.registerTool("getPRComment", {
-            description: "Get a specific pull request comment by ID",
+            description: "Get a PR comment",
             inputSchema: {
                 ...prArgs,
                 commentId: z.coerce.number(),
@@ -158,7 +147,7 @@ const prCommentsModule = {
             }
         });
         server.registerTool("deletePRComment", {
-            description: "Delete a pull request comment (requires BITBUCKET_ENABLE_DANGEROUS=true)",
+            description: "Delete a PR comment (needs BITBUCKET_ENABLE_DANGEROUS=true)",
             inputSchema: {
                 ...prArgs,
                 commentId: z.coerce.number(),

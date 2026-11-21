@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { repoArgs, prArgs, pageArgs } from "#lib/params.js";
-import { getClient, prPath, repoPath, resolveProject } from "#lib/client.js";
+import { branchRef, getClient, prPath, repoPath, resolveProject } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizePullRequest, summarizeArray } from "#lib/field-filter.js";
@@ -29,7 +29,7 @@ const pullRequestsModule = {
                 if (args.direction !== undefined)
                     params.direction = args.direction;
                 if (args.at !== undefined)
-                    params.at = args.at;
+                    params.at = branchRef(args.at);
                 const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/pull-requests`, {
                     limit: args.limit,
                     start: args.start,
@@ -44,7 +44,7 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("getPullRequest", {
-            description: "Get details of a specific pull request",
+            description: "Get a pull request",
             inputSchema: {
                 ...prArgs,
             },
@@ -59,9 +59,11 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("createPullRequest", {
-            description: "Create a new pull request",
+            description: "Create a pull request (from a fork: set sourceProjectKey/sourceRepoSlug)",
             inputSchema: {
                 ...repoArgs,
+                sourceProjectKey: z.string().optional().describe("Fork project, e.g. ~USER"),
+                sourceRepoSlug: z.string().optional().describe("Fork repo slug"),
                 title: z.string(),
                 description: z.string().optional(),
                 sourceBranch: z.string(),
@@ -72,23 +74,15 @@ const pullRequestsModule = {
         }, async (args) => {
             try {
                 const client = getClient();
+                const target = { slug: args.repoSlug, project: { key: resolveProject(args.projectKey) } };
+                const source = args.sourceProjectKey === undefined && args.sourceRepoSlug === undefined
+                    ? target
+                    : { slug: args.sourceRepoSlug ?? args.repoSlug, project: { key: args.sourceProjectKey ?? target.project.key } };
                 const payload: Record<string, unknown> = {
                     title: args.title,
                     description: args.description ?? "",
-                    fromRef: {
-                        id: `refs/heads/${args.sourceBranch}`,
-                        repository: {
-                            slug: args.repoSlug,
-                            project: { key: resolveProject(args.projectKey) },
-                        },
-                    },
-                    toRef: {
-                        id: `refs/heads/${args.targetBranch}`,
-                        repository: {
-                            slug: args.repoSlug,
-                            project: { key: resolveProject(args.projectKey) },
-                        },
-                    },
+                    fromRef: { id: branchRef(args.sourceBranch), repository: source },
+                    toRef: { id: branchRef(args.targetBranch), repository: target },
                 };
                 if (args.reviewers != null && args.reviewers.length > 0) {
                     payload.reviewers = args.reviewers
@@ -106,29 +100,30 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("updatePullRequest", {
-            description: "Update a pull request (title, description, reviewers, target branch)",
+            description: "Update a pull request's title, description, target branch or reviewers",
             inputSchema: {
                 ...prArgs,
                 title: z.string().optional(),
                 description: z.string().optional(),
+                targetBranch: z.string().optional(),
+                reviewers: z.array(z.string()).optional().describe("Replaces the reviewer list"),
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                // Fetch current PR for optimistic locking version and to preserve fields
+                // Fetch current PR for optimistic locking version and to preserve fields.
+                // Reviewers are re-sent when not given: DC does not document that an absent list keeps them.
                 const current = await client.get(prPath(args.projectKey, args.repoSlug, args.prId));
                 const currentData = current.data;
                 const data = {
-                    title: currentData.title,
-                    description: currentData.description,
+                    title: args.title ?? currentData.title,
+                    description: args.description ?? currentData.description,
                     version: currentData.version,
-                    toRef: currentData.toRef,
-                    reviewers: currentData.reviewers,
+                    toRef: args.targetBranch === undefined ? currentData.toRef : { id: branchRef(args.targetBranch), repository: currentData.toRef?.repository },
+                    reviewers: args.reviewers === undefined
+                        ? currentData.reviewers
+                        : args.reviewers.map((name) => name.trim()).filter((name) => name !== "").map((name) => ({ user: { name } })),
                 };
-                if (args.title !== undefined)
-                    data.title = args.title;
-                if (args.description !== undefined)
-                    data.description = args.description;
                 const response = await client.put(prPath(args.projectKey, args.repoSlug, args.prId), data);
                 return jsonResult(response.data);
             }
@@ -190,7 +185,7 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("reopenPullRequest", {
-            description: "Reopen a declined pull request",
+            description: "Reopen a declined PR",
             inputSchema: {
                 ...prArgs,
             },
@@ -224,7 +219,7 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("unapprovePullRequest", {
-            description: "Remove approval from a pull request",
+            description: "Remove your PR approval",
             inputSchema: {
                 ...prArgs,
             },
@@ -264,7 +259,7 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("canMergePullRequest", {
-            description: "Check if a pull request can be merged",
+            description: "Check whether a PR can merge",
             inputSchema: {
                 ...prArgs,
             },
@@ -324,7 +319,7 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("removePullRequestReviewer", {
-            description: "Remove a reviewer from an existing pull request.",
+            description: "Remove a PR reviewer",
             inputSchema: {
                 ...prArgs,
                 username: z.string().describe("Username"),

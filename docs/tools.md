@@ -1,6 +1,6 @@
 # Tools
 
-74 tools, one module per group in `src/tools/`. `projectKey` is optional on every tool: it falls back to `BITBUCKET_DEFAULT_PROJECT`.
+75 tools, one module per group in `src/tools/`. `projectKey` is optional on every tool: it falls back to `BITBUCKET_DEFAULT_PROJECT`.
 Tool descriptions stay one short sentence (a test caps them at 200 chars and `tools/list` at a byte budget);
 usage detail lives in `skills/bitbucket-dc/SKILL.md`.
 
@@ -9,8 +9,8 @@ usage detail lives in `skills/bitbucket-dc/SKILL.md`.
 | My pull requests (dashboard) | `listMyPullRequests`, `listPullRequestsAwaitingMyReview` |
 | Projects | `listProjects`, `getProject`, `createProject`, `updateProject` |
 | Repositories | `listRepositories`, `getRepository`, `createRepository`, `forkRepository`, `getDefaultBranch`, `setDefaultBranch` |
-| Pull requests | `listPullRequests`, `getPullRequest`, `createPullRequest`, `updatePullRequest`, `mergePullRequest`, `declinePullRequest`, `reopenPullRequest`, `approvePullRequest`, `unapprovePullRequest`, `markPullRequestAsDraft`, `canMergePullRequest`, `addPullRequestReviewers`, `removePullRequestReviewer` |
-| PR comments | `listPRComments` (unresolved by default), `addPRComment`, `getPRComment`, `updatePRComment`, `resolvePRComment`, `reopenPRComment`, `deletePRComment`† |
+| Pull requests | `listPullRequests`, `getPullRequest`, `createPullRequest`, `updatePullRequest`, `mergePullRequest`, `declinePullRequest`, `reopenPullRequest`, `approvePullRequest`, `unapprovePullRequest`, `markPullRequestAsDraft`, `canMergePullRequest`, `addPullRequestReviewers`, `removePullRequestReviewer`, `setPullRequestStatus` (APPROVED, NEEDS_WORK, UNAPPROVED) |
+| PR comments | `listPRComments` (unresolved by default; a resolved task counts as resolved), `addPRComment`, `getPRComment`, `updatePRComment`, `resolvePRComment`, `reopenPRComment`, `deletePRComment`† |
 | PR review sessions | `startReview`, `listPendingReviewComments`, `finishReview`, `discardReview` |
 | PR tasks | `listPRTasks`, `addBlockerComment`, `resolveTask`, `reopenTask` |
 | PR diff | `getPullRequestChanges`, `getPullRequestDiff`, `streamPullRequestDiff`, `getPullRequestPatch` |
@@ -45,7 +45,8 @@ List tools return `{ values, isLastPage, nextPageStart?, truncated? }`. When `is
 ## Review sessions
 
 `startReview` buffers `addPRComment` calls in memory for that MCP session. `finishReview` posts them in order
-and can approve (`reviewStatus: APPROVED`); it skips the approval if every comment failed. `discardReview` drops
+and can set your status (`reviewStatus: APPROVED`, `NEEDS_WORK` or `UNAPPROVED`, same call as
+`setPullRequestStatus`); it skips the status if every comment failed. `discardReview` drops
 the buffer. A session ends on disconnect (HTTP: after `MCP_SESSION_IDLE_TTL_MS` idle), and the buffer with it.
 
 ## Merge queue

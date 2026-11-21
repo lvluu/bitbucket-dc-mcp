@@ -54,3 +54,16 @@ describe("listPRComments paging", () => {
         expect(body.nextPageStart).toBe(25);
     });
 });
+
+describe("listPRComments resolved tasks (#52)", () => {
+    const resolvedTask = { action: "COMMENTED", comment: { id: 9, text: "fix it", severity: "BLOCKER", state: "RESOLVED" } };
+    const page = { 0: { values: [resolvedTask, open(3)], isLastPage: true } };
+    test("a task resolved via resolveTask (state RESOLVED, no threadResolved) is not UNRESOLVED", async () => {
+        const { body } = await listWith(page, {});
+        expect((body.values as { id: number }[]).map((c) => c.id)).toEqual([3]);
+    });
+    test("it is listed under RESOLVED", async () => {
+        const { body } = await listWith(page, { state: "RESOLVED" });
+        expect((body.values as { id: number }[]).map((c) => c.id)).toEqual([9]);
+    });
+});

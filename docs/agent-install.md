@@ -30,11 +30,10 @@ Claude Code:
 claude mcp add --scope user bitbucket-dc \
   -e BITBUCKET_URL="$BITBUCKET_URL" \
   -e BITBUCKET_TOKEN="$BITBUCKET_TOKEN" \
-  -e MCP_TRANSPORT=stdio \
   -- npx -y @shibainu16/bitbucket-dc-mcp
 ```
 
-Other clients: use the matching block in [clients.md](clients.md). Always set `MCP_TRANSPORT=stdio`.
+Other clients: use the matching block in [clients.md](clients.md).
 
 ## 4. Install the usage skill
 
