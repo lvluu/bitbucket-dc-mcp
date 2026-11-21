@@ -1,0 +1,433 @@
+{
+  "when": "2026-11-21T10:40:56.857Z",
+  "total": 71,
+  "passed": 71,
+  "rows": [
+    {
+      "tool": "listProjects",
+      "ok": true,
+      "bytes": 215,
+      "ms": 15
+    },
+    {
+      "tool": "getProject",
+      "ok": true,
+      "bytes": 103,
+      "ms": 4
+    },
+    {
+      "tool": "createProject",
+      "ok": true,
+      "bytes": 104,
+      "ms": 5
+    },
+    {
+      "tool": "updateProject",
+      "ok": true,
+      "bytes": 104,
+      "ms": 5
+    },
+    {
+      "tool": "listRepositories",
+      "ok": true,
+      "bytes": 420,
+      "ms": 4
+    },
+    {
+      "tool": "getRepository",
+      "ok": true,
+      "bytes": 262,
+      "ms": 4
+    },
+    {
+      "tool": "createRepository",
+      "ok": true,
+      "bytes": 262,
+      "ms": 4
+    },
+    {
+      "tool": "forkRepository",
+      "ok": true,
+      "bytes": 262,
+      "ms": 4
+    },
+    {
+      "tool": "getDefaultBranch",
+      "ok": true,
+      "bytes": 43,
+      "ms": 3
+    },
+    {
+      "tool": "setDefaultBranch",
+      "ok": true,
+      "bytes": 49,
+      "ms": 3
+    },
+    {
+      "tool": "listPullRequests",
+      "ok": true,
+      "bytes": 1285,
+      "ms": 4
+    },
+    {
+      "tool": "listMyPullRequests",
+      "ok": true,
+      "bytes": 1285,
+      "ms": 3
+    },
+    {
+      "tool": "listPullRequestsAwaitingMyReview",
+      "ok": true,
+      "bytes": 1285,
+      "ms": 3
+    },
+    {
+      "tool": "getPullRequest",
+      "ok": true,
+      "bytes": 309,
+      "ms": 4
+    },
+    {
+      "tool": "createPullRequest",
+      "ok": true,
+      "bytes": 950,
+      "ms": 3
+    },
+    {
+      "tool": "updatePullRequest",
+      "ok": true,
+      "bytes": 1000,
+      "ms": 5
+    },
+    {
+      "tool": "approvePullRequest",
+      "ok": true,
+      "bytes": 137,
+      "ms": 3
+    },
+    {
+      "tool": "unapprovePullRequest",
+      "ok": true,
+      "bytes": 43,
+      "ms": 3
+    },
+    {
+      "tool": "addPullRequestReviewers",
+      "ok": true,
+      "bytes": 396,
+      "ms": 7
+    },
+    {
+      "tool": "removePullRequestReviewer",
+      "ok": true,
+      "bytes": 43,
+      "ms": 3
+    },
+    {
+      "tool": "markPullRequestAsDraft",
+      "ok": true,
+      "bytes": 1140,
+      "ms": 5
+    },
+    {
+      "tool": "canMergePullRequest",
+      "ok": true,
+      "bytes": 54,
+      "ms": 3
+    },
+    {
+      "tool": "declinePullRequest",
+      "ok": true,
+      "bytes": 1011,
+      "ms": 5
+    },
+    {
+      "tool": "reopenPullRequest",
+      "ok": true,
+      "bytes": 1007,
+      "ms": 6
+    },
+    {
+      "tool": "listBranches",
+      "ok": true,
+      "bytes": 644,
+      "ms": 3
+    },
+    {
+      "tool": "createBranch",
+      "ok": true,
+      "bytes": 174,
+      "ms": 4
+    },
+    {
+      "tool": "deleteBranch",
+      "ok": true,
+      "bytes": 42,
+      "ms": 4
+    },
+    {
+      "tool": "listTags",
+      "ok": true,
+      "bytes": 424,
+      "ms": 3
+    },
+    {
+      "tool": "createTag",
+      "ok": true,
+      "bytes": 196,
+      "ms": 3
+    },
+    {
+      "tool": "listCommits",
+      "ok": true,
+      "bytes": 11958,
+      "ms": 6
+    },
+    {
+      "tool": "compareRefs",
+      "ok": true,
+      "bytes": 3154,
+      "ms": 4
+    },
+    {
+      "tool": "getUser",
+      "ok": true,
+      "bytes": 83,
+      "ms": 3
+    },
+    {
+      "tool": "getCommit",
+      "ok": true,
+      "bytes": 380,
+      "ms": 6
+    },
+    {
+      "tool": "getCommitChanges",
+      "ok": true,
+      "bytes": 121,
+      "ms": 3
+    },
+    {
+      "tool": "getCommitDiff",
+      "ok": true,
+      "bytes": 154,
+      "ms": 3
+    },
+    {
+      "tool": "getCommitDiff",
+      "ok": true,
+      "bytes": 190,
+      "ms": 3
+    },
+    {
+      "tool": "browseFiles",
+      "ok": true,
+      "bytes": 141,
+      "ms": 3
+    },
+    {
+      "tool": "getFileContent",
+      "ok": true,
+      "bytes": 49,
+      "ms": 3
+    },
+    {
+      "tool": "editFile",
+      "ok": true,
+      "bytes": 101,
+      "ms": 5
+    },
+    {
+      "tool": "listFiles",
+      "ok": true,
+      "bytes": 106,
+      "ms": 2
+    },
+    {
+      "tool": "listPRComments",
+      "ok": true,
+      "bytes": 673,
+      "ms": 4
+    },
+    {
+      "tool": "addPRComment",
+      "ok": true,
+      "bytes": 244,
+      "ms": 3
+    },
+    {
+      "tool": "getPRComment",
+      "ok": true,
+      "bytes": 261,
+      "ms": 2
+    },
+    {
+      "tool": "updatePRComment",
+      "ok": true,
+      "bytes": 238,
+      "ms": 3
+    },
+    {
+      "tool": "resolvePRComment",
+      "ok": true,
+      "bytes": 237,
+      "ms": 3
+    },
+    {
+      "tool": "reopenPRComment",
+      "ok": true,
+      "bytes": 238,
+      "ms": 2
+    },
+    {
+      "tool": "deletePRComment",
+      "ok": true,
+      "bytes": 29,
+      "ms": 2
+    },
+    {
+      "tool": "getPullRequestDiff",
+      "ok": true,
+      "bytes": 171,
+      "ms": 3
+    },
+    {
+      "tool": "streamPullRequestDiff",
+      "ok": true,
+      "bytes": 117,
+      "ms": 2
+    },
+    {
+      "tool": "getPullRequestPatch",
+      "ok": true,
+      "bytes": 110,
+      "ms": 3
+    },
+    {
+      "tool": "getPullRequestChanges",
+      "ok": true,
+      "bytes": 121,
+      "ms": 2
+    },
+    {
+      "tool": "getPullRequestActivity",
+      "ok": true,
+      "bytes": 1301,
+      "ms": 3
+    },
+    {
+      "tool": "getPullRequestCommits",
+      "ok": true,
+      "bytes": 2271,
+      "ms": 2
+    },
+    {
+      "tool": "getPullRequestParticipants",
+      "ok": true,
+      "bytes": 471,
+      "ms": 3
+    },
+    {
+      "tool": "startReview",
+      "ok": true,
+      "bytes": 129,
+      "ms": 1
+    },
+    {
+      "tool": "addPRComment",
+      "ok": true,
+      "bytes": 62,
+      "ms": 2
+    },
+    {
+      "tool": "listPendingReviewComments",
+      "ok": true,
+      "bytes": 39,
+      "ms": 1
+    },
+    {
+      "tool": "finishReview",
+      "ok": true,
+      "bytes": 543,
+      "ms": 4
+    },
+    {
+      "tool": "startReview",
+      "ok": true,
+      "bytes": 129,
+      "ms": 2
+    },
+    {
+      "tool": "discardReview",
+      "ok": true,
+      "bytes": 47,
+      "ms": 2
+    },
+    {
+      "tool": "listPRTasks",
+      "ok": true,
+      "bytes": 269,
+      "ms": 2
+    },
+    {
+      "tool": "addBlockerComment",
+      "ok": true,
+      "bytes": 323,
+      "ms": 3
+    },
+    {
+      "tool": "resolveTask",
+      "ok": true,
+      "bytes": 242,
+      "ms": 2
+    },
+    {
+      "tool": "reopenTask",
+      "ok": true,
+      "bytes": 238,
+      "ms": 3
+    },
+    {
+      "tool": "getBuildStatuses",
+      "ok": true,
+      "bytes": 524,
+      "ms": 3
+    },
+    {
+      "tool": "getBuildStatusStats",
+      "ok": true,
+      "bytes": 42,
+      "ms": 3
+    },
+    {
+      "tool": "listRepositoryWebhooks",
+      "ok": true,
+      "bytes": 199,
+      "ms": 3
+    },
+    {
+      "tool": "enqueuePullRequest",
+      "ok": true,
+      "bytes": 85,
+      "ms": 2
+    },
+    {
+      "tool": "getMergeQueue",
+      "ok": true,
+      "bytes": 69,
+      "ms": 3
+    },
+    {
+      "tool": "processMergeQueue",
+      "ok": true,
+      "bytes": 1196,
+      "ms": 5
+    },
+    {
+      "tool": "mergePullRequest",
+      "ok": true,
+      "bytes": 1142,
+      "ms": 5
+    }
+  ]
+}
