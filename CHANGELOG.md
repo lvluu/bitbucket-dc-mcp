@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.9.0...v1.9.1) (2026-11-21)
+
+
+### Performance Improvements
+
+* compact getPullRequest, activity feed and comment results ([#66](https://github.com/lvluu/bitbucket-dc-mcp/issues/66)) ([7b11e31](https://github.com/lvluu/bitbucket-dc-mcp/commit/7b11e31518cbf93e7bb1f7fc852daa1d6075375f))
+
 ## [1.9.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.8.0...v1.9.0) (2026-11-20)
 
 
