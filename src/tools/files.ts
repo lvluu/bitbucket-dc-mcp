@@ -1,15 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { repoArgs, pageArgs } from "#lib/params.js";
 import { getClient, repoFilePath, repoPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
 const DESC_BRANCH_TAG_COMMIT = "Branch, tag, or commit hash";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const filesModule = {
     type: "tool",
     name: "files",
@@ -18,12 +14,11 @@ const filesModule = {
         server.registerTool("browseFiles", {
             description: "Browse files and directories in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
                 path: z.string().optional().default("").describe("Path within the repository"),
-                at: z.string().optional().describe("Branch, tag, or commit hash (defaults to default branch)"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
+                at: z.string().optional().describe("Branch, tag or commit"),
+                limit: z.coerce.number().optional(),
+                start: z.coerce.number().optional(),
             },
         }, async (args) => {
             try {
@@ -41,9 +36,8 @@ const filesModule = {
         server.registerTool("getFileContent", {
             description: "Get raw content of a file",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                path: z.string().describe("File path within the repository"),
+                ...repoArgs,
+                path: z.string().describe("File path"),
                 at: z.string().optional().describe(DESC_BRANCH_TAG_COMMIT),
             },
         }, async (args) => {
@@ -62,13 +56,12 @@ const filesModule = {
         server.registerTool("editFile", {
             description: "Edit (create or update) a file in the repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                path: z.string().describe("File path"),
+                ...repoArgs,
+                path: z.string(),
                 content: z.string().describe("New file content"),
-                message: z.string().describe("Commit message"),
+                message: z.string(),
                 branch: z.string().describe("Branch to commit to"),
-                sourceCommitId: z.string().optional().describe("Source commit ID for optimistic locking (required for updates)"),
+                sourceCommitId: z.string().optional().describe("Required to update an existing file"),
             },
         }, async (args) => {
             try {
@@ -89,14 +82,11 @@ const filesModule = {
             }
         });
         server.registerTool("listFiles", {
-            description: "List file paths recursively in a repository (stream files endpoint)",
+            description: "List all file paths in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
                 at: z.string().optional().describe(DESC_BRANCH_TAG_COMMIT),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...pageArgs,
             },
         }, async (args) => {
             try {

@@ -1,16 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getClient, repoPath, prPath } from "#lib/client.js";
+import { repoArgs, prArgs, pageArgs } from "#lib/params.js";
+import { getClient, prPath, repoPath, resolveProject } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizePullRequest, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
-const DESC_PR_ID = "Pull request ID";
 const pullRequestsModule = {
     type: "tool",
     name: "pull-requests",
@@ -19,14 +14,11 @@ const pullRequestsModule = {
         server.registerTool("listPullRequests", {
             description: "List pull requests for a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                state: z.enum(["OPEN", "MERGED", "DECLINED", "ALL"]).optional().describe("PR state filter"),
-                direction: z.enum(["INCOMING", "OUTGOING"]).optional().describe("PR direction"),
-                at: z.string().optional().describe("Branch to filter by (fully-qualified ref)"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                state: z.enum(["OPEN", "MERGED", "DECLINED", "ALL"]).optional(),
+                direction: z.enum(["INCOMING", "OUTGOING"]).optional(),
+                at: z.string().optional().describe("Full ref, e.g. refs/heads/main"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -54,9 +46,7 @@ const pullRequestsModule = {
         server.registerTool("getPullRequest", {
             description: "Get details of a specific pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -71,13 +61,12 @@ const pullRequestsModule = {
         server.registerTool("createPullRequest", {
             description: "Create a new pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                title: z.string().describe("PR title"),
-                description: z.string().optional().describe("PR description"),
-                sourceBranch: z.string().describe("Source branch name"),
-                targetBranch: z.string().describe("Target branch name"),
-                reviewers: z.array(z.string()).optional().describe("Reviewer usernames"),
+                ...repoArgs,
+                title: z.string(),
+                description: z.string().optional(),
+                sourceBranch: z.string(),
+                targetBranch: z.string(),
+                reviewers: z.array(z.string()).optional(),
                 draft: z.boolean().optional().describe("Create as draft PR"),
             },
         }, async (args) => {
@@ -90,14 +79,14 @@ const pullRequestsModule = {
                         id: `refs/heads/${args.sourceBranch}`,
                         repository: {
                             slug: args.repoSlug,
-                            project: { key: args.projectKey },
+                            project: { key: resolveProject(args.projectKey) },
                         },
                     },
                     toRef: {
                         id: `refs/heads/${args.targetBranch}`,
                         repository: {
                             slug: args.repoSlug,
-                            project: { key: args.projectKey },
+                            project: { key: resolveProject(args.projectKey) },
                         },
                     },
                 };
@@ -119,11 +108,9 @@ const pullRequestsModule = {
         server.registerTool("updatePullRequest", {
             description: "Update a pull request (title, description, reviewers, target branch)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                title: z.string().optional().describe("New title"),
-                description: z.string().optional().describe("New description"),
+                ...prArgs,
+                title: z.string().optional(),
+                description: z.string().optional(),
             },
         }, async (args) => {
             try {
@@ -152,11 +139,9 @@ const pullRequestsModule = {
         server.registerTool("mergePullRequest", {
             description: "Merge a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
                 message: z.string().optional().describe("Merge commit message"),
-                strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional().describe("Merge strategy"),
+                strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional(),
             },
         }, async (args) => {
             try {
@@ -185,9 +170,7 @@ const pullRequestsModule = {
         server.registerTool("declinePullRequest", {
             description: "Decline a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
                 message: z.string().optional().describe("Reason for declining"),
             },
         }, async (args) => {
@@ -209,9 +192,7 @@ const pullRequestsModule = {
         server.registerTool("reopenPullRequest", {
             description: "Reopen a declined pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -230,9 +211,7 @@ const pullRequestsModule = {
         server.registerTool("approvePullRequest", {
             description: "Approve a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -247,9 +226,7 @@ const pullRequestsModule = {
         server.registerTool("unapprovePullRequest", {
             description: "Remove approval from a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -262,11 +239,9 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("markPullRequestAsDraft", {
-            description: "Mark a pull request as draft or remove draft status",
+            description: "Set or clear PR draft status",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
                 draft: z.boolean().describe("true to mark as draft, false to remove draft status"),
             },
         }, async (args) => {
@@ -291,9 +266,7 @@ const pullRequestsModule = {
         server.registerTool("canMergePullRequest", {
             description: "Check if a pull request can be merged",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -306,12 +279,10 @@ const pullRequestsModule = {
             }
         });
         server.registerTool("addPullRequestReviewers", {
-            description: "Add reviewers to an existing pull request. Assigns users the REVIEWER role. If a user is already a participant with a different role (except AUTHOR), their role will be updated to REVIEWER.",
+            description: "Add reviewers to a pull request.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                reviewers: z.array(z.string()).min(1).describe("Array of reviewer usernames to add"),
+                ...prArgs,
+                reviewers: z.array(z.string()).min(1).describe("Usernames"),
             },
         }, async (args) => {
             try {
@@ -355,10 +326,8 @@ const pullRequestsModule = {
         server.registerTool("removePullRequestReviewer", {
             description: "Remove a reviewer from an existing pull request.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                username: z.string().describe("Username of the reviewer to remove"),
+                ...prArgs,
+                username: z.string().describe("Username"),
             },
         }, async (args) => {
             try {

@@ -1,12 +1,12 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getClient, getConfig, repoPath } from "#lib/client.js";
+import { repoArgs, pageArgs } from "#lib/params.js";
+import { getClient, projectPath, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeRepository, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
 const repositoriesModule = {
     type: "tool",
     name: "repositories",
@@ -15,24 +15,17 @@ const repositoriesModule = {
         server.registerTool("listRepositories", {
             description: "List repositories in a Bitbucket DC project",
             inputSchema: {
-                projectKey: z.string().optional().describe("Project key (uses BITBUCKET_DEFAULT_PROJECT if not set)"),
-                name: z.string().optional().describe("Filter repositories by name (partial match)"),
-                limit: z.coerce.number().optional().describe("Number of items per page (default 25, max 100)"),
-                start: z.coerce.number().optional().describe("Start index for pagination"),
-                all: z.boolean().optional().describe("Fetch all pages (up to 1000 items)"),
+                projectKey: z.string().optional(),
+                name: z.string().optional().describe("Name contains"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                const config = getConfig();
-                const project = args.projectKey ?? config.defaultProject;
-                if (project === undefined) {
-                    return { content: [{ type: "text", text: "projectKey is required (or set BITBUCKET_DEFAULT_PROJECT)" }], isError: true };
-                }
                 const params: Record<string, unknown> = {};
                 if (args.name !== undefined)
                     params.name = args.name;
-                const result = await fetchPage(client, `/projects/${encodeURIComponent(project)}/repos`, {
+                const result = await fetchPage(client, `${projectPath(args.projectKey)}/repos`, {
                     limit: args.limit,
                     start: args.start,
                     all: args.all,
@@ -48,8 +41,7 @@ const repositoriesModule = {
         server.registerTool("getRepository", {
             description: "Get details of a specific repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
             },
         }, async (args) => {
             try {
@@ -64,16 +56,16 @@ const repositoriesModule = {
         server.registerTool("createRepository", {
             description: "Create a new repository in a project",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                name: z.string().describe("Repository name"),
+                projectKey: z.string().optional(),
+                name: z.string(),
                 scmId: z.string().optional().default("git").describe("SCM type (default: git)"),
-                forkable: z.boolean().optional().describe("Whether the repo is forkable"),
+                forkable: z.boolean().optional(),
                 defaultBranch: z.string().optional().describe("Default branch name"),
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                const response = await client.post(`/projects/${encodeURIComponent(args.projectKey)}/repos`, {
+                const response = await client.post(`${projectPath(args.projectKey)}/repos`, {
                     name: args.name,
                     scmId: args.scmId,
                     forkable: args.forkable,
@@ -91,7 +83,7 @@ const repositoriesModule = {
                 projectKey: z.string().describe("Source project key"),
                 repoSlug: z.string().describe("Source repository slug"),
                 targetProjectKey: z.string().optional().describe("Target project key for the fork"),
-                name: z.string().optional().describe("Name for the forked repository"),
+                name: z.string().optional().describe("Fork name"),
             },
         }, async (args) => {
             try {
@@ -111,8 +103,7 @@ const repositoriesModule = {
         server.registerTool("getDefaultBranch", {
             description: "Get the default branch of a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
             },
         }, async (args) => {
             try {
@@ -127,8 +118,7 @@ const repositoriesModule = {
         server.registerTool("setDefaultBranch", {
             description: "Set the default branch of a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
                 branchId: z.string().describe("Branch ID (e.g. refs/heads/main)"),
             },
         }, async (args) => {

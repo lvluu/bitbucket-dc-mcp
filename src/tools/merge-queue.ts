@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getClient, prPath } from "#lib/client.js";
+import { repoArgs, prArgs } from "#lib/params.js";
+import { getClient, prPath, resolveProject } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import {
     mergeQueueKey,
@@ -11,9 +12,6 @@ import {
     releaseProcessing,
 } from "#lib/merge-queue-state.js";
 
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_PR_ID = "Pull request ID";
 
 interface MergeabilityResponse {
     canMerge?: boolean;
@@ -29,18 +27,16 @@ const mergeQueueModule = {
     description: "Bitbucket DC per-repository merge queue operations",
     register(server: McpServer): void {
         server.registerTool("enqueuePullRequest", {
-            description: "Append a pull request to the repository merge queue and return its 1-based position",
+            description: "Add a PR to the merge queue; returns its position",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
                 const key = mergeQueueKey(args.projectKey, args.repoSlug);
                 const position = enqueuePullRequest(key, args.prId);
                 return jsonResult({
-                    projectKey: args.projectKey,
+                    projectKey: resolveProject(args.projectKey),
                     repoSlug: args.repoSlug,
                     prId: args.prId,
                     position,
@@ -52,17 +48,16 @@ const mergeQueueModule = {
         });
 
         server.registerTool("getMergeQueue", {
-            description: "List the queued pull request IDs in order for a repository",
+            description: "List queued PR IDs in order",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
             },
         }, async (args) => {
             try {
                 const key = mergeQueueKey(args.projectKey, args.repoSlug);
                 const queue = getMergeQueue(key);
                 return jsonResult({
-                    projectKey: args.projectKey,
+                    projectKey: resolveProject(args.projectKey),
                     repoSlug: args.repoSlug,
                     queue,
                     total: queue.length,
@@ -73,11 +68,9 @@ const mergeQueueModule = {
         });
 
         server.registerTool("dequeuePullRequest", {
-            description: "Remove a pull request from the repository merge queue (e.g. a blocked, declined or mistyped PR) and return the remaining queue",
+            description: "Remove a PR from the merge queue.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, (args) => {
             try {
@@ -87,7 +80,7 @@ const mergeQueueModule = {
                 }
                 const remainingQueue = getMergeQueue(key);
                 return jsonResult({
-                    projectKey: args.projectKey,
+                    projectKey: resolveProject(args.projectKey),
                     repoSlug: args.repoSlug,
                     prId: args.prId,
                     remainingQueue,
@@ -99,12 +92,11 @@ const mergeQueueModule = {
         });
 
         server.registerTool("processMergeQueue", {
-            description: "Process queued pull requests in order: drop (and report as skipped) those that are no longer OPEN, merge those whose mergeability check passes, stopping at the first that cannot merge",
+            description: "Merge queued PRs in order, skipping non-OPEN ones; stops at the first that cannot merge.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                message: z.string().optional().describe("Optional commit message to use for merges"),
-                strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional().describe("Merge strategy"),
+                ...repoArgs,
+                message: z.string().optional().describe("Merge commit message"),
+                strategy: z.enum(["merge-commit", "squash", "fast-forward"]).optional(),
             },
         }, async (args) => {
             const key = mergeQueueKey(args.projectKey, args.repoSlug);

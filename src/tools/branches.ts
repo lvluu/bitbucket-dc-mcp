@@ -1,15 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { repoArgs, pageArgs } from "#lib/params.js";
 import { getClient, getOriginUrl, repoPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeBranch, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const branchesModule = {
     type: "tool",
     name: "branches",
@@ -18,13 +14,10 @@ const branchesModule = {
         server.registerTool("listBranches", {
             description: "List branches in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
                 filterText: z.string().optional().describe("Filter branches by name"),
-                orderBy: z.enum(["ALPHABETICAL", "MODIFICATION"]).optional().describe("Sort order"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                orderBy: z.enum(["ALPHABETICAL", "MODIFICATION"]).optional(),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -45,10 +38,9 @@ const branchesModule = {
         server.registerTool("createBranch", {
             description: "Create a new branch in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                name: z.string().describe("Branch name"),
-                startPoint: z.string().describe("Start point (commit hash or branch name)"),
+                ...repoArgs,
+                name: z.string(),
+                startPoint: z.string().describe("Commit or branch"),
             },
         }, async (args) => {
             try {
@@ -63,10 +55,9 @@ const branchesModule = {
         server.registerTool("deleteBranch", {
             description: "Delete a branch (requires BITBUCKET_ENABLE_DANGEROUS=true)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
                 name: z.string().describe("Branch name to delete"),
-                dryRun: z.boolean().optional().describe("If true, only check if delete is possible"),
+                dryRun: z.boolean().optional().describe("Only check"),
             },
         }, async (args) => {
             try {
@@ -77,7 +68,7 @@ const branchesModule = {
                 }
                 const client = getClient();
                 // branch-utils is a separate REST module, not under /rest/api/1.0
-                await client.delete(`${getOriginUrl()}/rest/branch-utils/latest/projects/${encodeURIComponent(args.projectKey)}/repos/${encodeURIComponent(args.repoSlug)}/branches`, { data: { name: `refs/heads/${args.name}`, dryRun: args.dryRun ?? false } });
+                await client.delete(`${getOriginUrl()}/rest/branch-utils/latest${repoPath(args.projectKey, args.repoSlug)}/branches`, { data: { name: `refs/heads/${args.name}`, dryRun: args.dryRun ?? false } });
                 return textResult(`Branch '${args.name}' deleted successfully.`);
             }
             catch (error) {
@@ -87,13 +78,10 @@ const branchesModule = {
         server.registerTool("listTags", {
             description: "List tags in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
                 filterText: z.string().optional().describe("Filter tags by name"),
-                orderBy: z.enum(["ALPHABETICAL", "MODIFICATION"]).optional().describe("Sort order"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                orderBy: z.enum(["ALPHABETICAL", "MODIFICATION"]).optional(),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -114,11 +102,10 @@ const branchesModule = {
         server.registerTool("createTag", {
             description: "Create a tag in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                name: z.string().describe("Tag name"),
+                ...repoArgs,
+                name: z.string(),
                 startPoint: z.string().describe("Commit hash to tag"),
-                message: z.string().optional().describe("Tag message (for annotated tags)"),
+                message: z.string().optional().describe("Annotated tag message"),
             },
         }, async (args) => {
             try {

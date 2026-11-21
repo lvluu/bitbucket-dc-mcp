@@ -1,6 +1,8 @@
 # Tools
 
-74 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
+74 tools, one module per group in `src/tools/`. `projectKey` is optional on every tool: it falls back to `BITBUCKET_DEFAULT_PROJECT`.
+Tool descriptions stay one short sentence (a test caps them at 200 chars and `tools/list` at a byte budget);
+usage detail lives in `skills/bitbucket-dc/SKILL.md`.
 
 | Group | Tools |
 |-------|-------|

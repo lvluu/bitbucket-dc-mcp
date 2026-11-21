@@ -32,9 +32,21 @@ export function getOriginUrl(): string {
     const cfg = getConfig();
     return serverRootUrl(cfg.baseUrl);
 }
+/** The given project key, else BITBUCKET_DEFAULT_PROJECT; throws one line when neither is set. */
+export function resolveProject(projectKey: string | undefined): string {
+    const key = projectKey !== undefined && projectKey !== "" ? projectKey : getConfig().defaultProject;
+    if (key === undefined || key === "") {
+        throw new Error("projectKey is required (or set BITBUCKET_DEFAULT_PROJECT)");
+    }
+    return key;
+}
+/** Build the DC API path for a project */
+export function projectPath(projectKey: string | undefined): string {
+    return `/projects/${encodeURIComponent(resolveProject(projectKey))}`;
+}
 /** Build the DC API path for a project's repository */
-export function repoPath(projectKey: string, repoSlug: string): string {
-    return `/projects/${encodeURIComponent(projectKey)}/repos/${encodeURIComponent(repoSlug)}`;
+export function repoPath(projectKey: string | undefined, repoSlug: string): string {
+    return `${projectPath(projectKey)}/repos/${encodeURIComponent(repoSlug)}`;
 }
 /** URL-encode each segment of a repository file path, keeping the "/" separators */
 export function encodePath(path: string): string {
@@ -45,18 +57,18 @@ export function encodePath(path: string): string {
     return segments.map(encodeURIComponent).join("/");
 }
 /** Build a repository path with an encoded file path appended: `<repo>/<resource>[/<path>]` */
-export function repoFilePath(projectKey: string, repoSlug: string, resource: string, path: string): string {
+export function repoFilePath(projectKey: string | undefined, repoSlug: string, resource: string, path: string): string {
     const filePath = encodePath(path);
     const base = `${repoPath(projectKey, repoSlug)}/${resource}`;
     return filePath !== "" ? `${base}/${filePath}` : base;
 }
 /** Build the DC API path for a commit diff: whole commit, or a single file when `path` is given */
-export function commitDiffPath(projectKey: string, repoSlug: string, commitId: string, path?: string): string {
+export function commitDiffPath(projectKey: string | undefined, repoSlug: string, commitId: string, path?: string): string {
     const base = `${repoPath(projectKey, repoSlug)}/commits/${encodeURIComponent(commitId)}/diff`;
     const filePath = path ? encodePath(path) : "";
     return filePath !== "" ? `${base}/${filePath}` : base;
 }
 /** Build the DC API path for a pull request */
-export function prPath(projectKey: string, repoSlug: string, prId: number | string): string {
+export function prPath(projectKey: string | undefined, repoSlug: string, prId: number | string): string {
     return `${repoPath(projectKey, repoSlug)}/pull-requests/${String(prId)}`;
 }

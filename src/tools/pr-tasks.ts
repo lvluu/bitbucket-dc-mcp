@@ -1,17 +1,12 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { prArgs } from "#lib/params.js";
 import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchFiltered, pageResult } from "#lib/pagination.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
 const DESC_FETCH_ALL_PAGES = "Fetch all pages";
-const DESC_PR_ID = "Pull request ID";
-const DESC_COMMENT_VERSION = "Comment version for optimistic locking";
 const prTasksModule = {
     type: "tool",
     name: "pr-tasks",
@@ -20,11 +15,9 @@ const prTasksModule = {
         server.registerTool("listPRTasks", {
             description: "List tasks (blocker comments) on a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
+                ...prArgs,
+                limit: z.coerce.number().optional(),
+                start: z.coerce.number().optional(),
                 all: z.boolean().optional().default(true).describe(DESC_FETCH_ALL_PAGES),
             },
         }, async (args) => {
@@ -41,11 +34,9 @@ const prTasksModule = {
         server.registerTool("addBlockerComment", {
             description: "Add a blocker comment (task) to a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                text: z.string().describe("Task text"),
-                anchorPath: z.string().optional().describe("File path for inline task"),
+                ...prArgs,
+                text: z.string(),
+                anchorPath: z.string().optional().describe("Inline: file path"),
                 anchorLine: z.coerce.number().optional().describe("Line number"),
                 anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM=old, TO=new file"),
             },
@@ -75,13 +66,11 @@ const prTasksModule = {
             }
         });
         server.registerTool("resolveTask", {
-            description: "Resolve a task (blocker comment) by setting its state to RESOLVED",
+            description: "Resolve a task (blocker comment)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
                 commentId: z.coerce.number().describe("Comment/task ID"),
-                version: z.coerce.number().describe(DESC_COMMENT_VERSION),
+                version: z.coerce.number(),
             },
         }, async (args) => {
             try {
@@ -94,13 +83,11 @@ const prTasksModule = {
             }
         });
         server.registerTool("reopenTask", {
-            description: "Reopen a resolved task (blocker comment) by setting its state back to OPEN",
+            description: "Reopen a resolved task",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
                 commentId: z.coerce.number().describe("Comment/task ID"),
-                version: z.coerce.number().describe(DESC_COMMENT_VERSION),
+                version: z.coerce.number(),
             },
         }, async (args) => {
             try {

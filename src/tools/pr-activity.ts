@@ -1,30 +1,21 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { prArgs, pageArgs } from "#lib/params.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeActivity, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_PR_ID = "Pull request ID";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const prActivityModule = {
     type: "tool",
     name: "pr-activity",
     description: "Bitbucket DC pull request activity and commit operations",
     register(server: McpServer): void {
         server.registerTool("getPullRequestActivity", {
-            description: "Get the activity log for a pull request (comments, approvals, merges, etc.)",
+            description: "Get the PR activity feed",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...prArgs,
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -40,12 +31,8 @@ const prActivityModule = {
         server.registerTool("getPullRequestCommits", {
             description: "Get commits in a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...prArgs,
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -58,11 +45,9 @@ const prActivityModule = {
             }
         });
         server.registerTool("getPullRequestParticipants", {
-            description: "Get participants (reviewers, author) of a pull request",
+            description: "Get PR participants",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {

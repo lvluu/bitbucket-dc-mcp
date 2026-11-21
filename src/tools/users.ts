@@ -8,9 +8,9 @@ const usersModule = {
     description: "Bitbucket DC user operations",
     register(server: McpServer): void {
         server.registerTool("getUser", {
-            description: "Look up a Bitbucket Data Center user by username. Returns their display name, email address and id.",
+            description: "Look up a user by username.",
             inputSchema: {
-                username: z.string().describe("Username (userSlug) of the user to look up"),
+                username: z.string().describe("User slug"),
             },
         }, async (args) => {
             try {

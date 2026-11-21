@@ -1,15 +1,10 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { prArgs, pageArgs } from "#lib/params.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
-const DESC_PR_ID = "Pull request ID";
 const prDiffModule = {
     type: "tool",
     name: "pr-diff",
@@ -18,10 +13,8 @@ const prDiffModule = {
         server.registerTool("getPullRequestDiff", {
             description: "Get the raw diff for a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                contextLines: z.coerce.number().optional().describe("Number of context lines in diff"),
+                ...prArgs,
+                contextLines: z.coerce.number().optional().describe("Context lines"),
                 withComments: z.boolean().optional().describe("Include comments in diff response"),
             },
         }, async (args) => {
@@ -40,11 +33,9 @@ const prDiffModule = {
             }
         });
         server.registerTool("streamPullRequestDiff", {
-            description: "Stream the raw unified diff for a pull request as plain text",
+            description: "Get the PR diff as unified text",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -59,9 +50,7 @@ const prDiffModule = {
         server.registerTool("getPullRequestPatch", {
             description: "Get the pull request as a patch file",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, async (args) => {
             try {
@@ -76,12 +65,8 @@ const prDiffModule = {
         server.registerTool("getPullRequestChanges", {
             description: "Get the list of changed files in a pull request",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...prArgs,
+                ...pageArgs,
             },
         }, async (args) => {
             try {
