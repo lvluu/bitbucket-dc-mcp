@@ -36,7 +36,7 @@ const branchesModule = {
             }
         });
         server.registerTool("createBranch", {
-            description: "Create a new branch in a repository",
+            description: "Create a branch",
             inputSchema: {
                 ...repoArgs,
                 name: z.string(),
@@ -53,7 +53,7 @@ const branchesModule = {
             }
         });
         server.registerTool("deleteBranch", {
-            description: "Delete a branch (requires BITBUCKET_ENABLE_DANGEROUS=true)",
+            description: "Delete a branch (needs BITBUCKET_ENABLE_DANGEROUS=true)",
             inputSchema: {
                 ...repoArgs,
                 name: z.string().describe("Branch name to delete"),

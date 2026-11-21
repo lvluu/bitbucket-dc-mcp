@@ -11,7 +11,7 @@ const prDiffModule = {
     description: "Bitbucket DC pull request diff, patch, and change operations",
     register(server: McpServer): void {
         server.registerTool("getPullRequestDiff", {
-            description: "Get the raw diff for a pull request",
+            description: "Get the PR diff (JSON hunks)",
             inputSchema: {
                 ...prArgs,
                 contextLines: z.coerce.number().optional().describe("Context lines"),
@@ -48,7 +48,7 @@ const prDiffModule = {
             }
         });
         server.registerTool("getPullRequestPatch", {
-            description: "Get the pull request as a patch file",
+            description: "Get the PR as a patch",
             inputSchema: {
                 ...prArgs,
             },
@@ -63,7 +63,7 @@ const prDiffModule = {
             }
         });
         server.registerTool("getPullRequestChanges", {
-            description: "Get the list of changed files in a pull request",
+            description: "List files changed in a PR",
             inputSchema: {
                 ...prArgs,
                 ...pageArgs,

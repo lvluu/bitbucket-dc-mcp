@@ -8,6 +8,15 @@ import { autoRegisterModules } from "#registry/auto-loader.js";
 import { createHttpApp, DEFAULT_IDLE_TTL_MS, DEFAULT_MAX_SESSIONS, isLoopbackHost, LOOPBACK_HOSTNAMES, positiveInt, resolveHost } from "./http.js";
 // Load environment variables from .env file
 config();
+/**
+ * Explicit MCP_TRANSPORT wins. Unset: stdio when stdin is not a terminal (an MCP client spawned us),
+ * http when a person runs it in a terminal.
+ */
+export function resolveTransport(explicit: string | undefined, stdinIsTTY: boolean | undefined): string {
+    if (explicit !== undefined && explicit !== "")
+        return explicit;
+    return stdinIsTTY === true ? "http" : "stdio";
+}
 export async function boot(mode?: string): Promise<void> {
     // Initialize Bitbucket DC client from environment
     const bbConfig = loadConfig();
@@ -18,7 +27,7 @@ export async function boot(mode?: string): Promise<void> {
     if (bbConfig.defaultProject !== undefined) {
         console.error(`Default project: ${bbConfig.defaultProject}`);
     }
-    const transportMode = mode ?? process.env.MCP_TRANSPORT ?? "http";
+    const transportMode = mode ?? resolveTransport(process.env.MCP_TRANSPORT, process.stdin.isTTY);
     const createServer = async (): Promise<McpServer> => {
         const server = new McpServer({
             name: "bitbucket-dc-mcp",

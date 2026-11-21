@@ -8,7 +8,6 @@ Every client runs the server over stdio with `npx`. Replace the URL and token.
 claude mcp add bitbucket-dc \
   -e BITBUCKET_URL=https://bitbucket.example.com \
   -e BITBUCKET_TOKEN=your-token \
-  -e MCP_TRANSPORT=stdio \
   -- npx -y @shibainu16/bitbucket-dc-mcp
 ```
 
@@ -23,8 +22,7 @@ Add `--scope user` to use it in every project. Or commit a project `.mcp.json`
       "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.example.com",
-        "BITBUCKET_TOKEN": "${BITBUCKET_TOKEN}",
-        "MCP_TRANSPORT": "stdio"
+        "BITBUCKET_TOKEN": "${BITBUCKET_TOKEN}"
       }
     }
   }
@@ -51,8 +49,7 @@ with the real token value.
       "args": ["-y", "@shibainu16/bitbucket-dc-mcp"],
       "env": {
         "BITBUCKET_URL": "https://bitbucket.example.com",
-        "BITBUCKET_TOKEN": "your-token",
-        "MCP_TRANSPORT": "stdio"
+        "BITBUCKET_TOKEN": "your-token"
       }
     }
   }
@@ -71,7 +68,7 @@ with the real token value.
 [mcp_servers.bitbucket-dc]
 command = "npx"
 args = ["-y", "@shibainu16/bitbucket-dc-mcp"]
-env = { BITBUCKET_URL = "https://bitbucket.example.com", BITBUCKET_TOKEN = "your-token", MCP_TRANSPORT = "stdio" }
+env = { BITBUCKET_URL = "https://bitbucket.example.com", BITBUCKET_TOKEN = "your-token" }
 ```
 
 ## Remote / shared server (HTTP)
@@ -79,7 +76,7 @@ env = { BITBUCKET_URL = "https://bitbucket.example.com", BITBUCKET_TOKEN = "your
 Run one server and point clients at it:
 
 ```bash
-HOST=0.0.0.0 MCP_AUTH_TOKEN=change-me BITBUCKET_URL=... BITBUCKET_TOKEN=... npx -y @shibainu16/bitbucket-dc-mcp
+MCP_TRANSPORT=http HOST=0.0.0.0 MCP_AUTH_TOKEN=change-me BITBUCKET_URL=... BITBUCKET_TOKEN=... npx -y @shibainu16/bitbucket-dc-mcp
 claude mcp add --transport http bitbucket-dc http://server:3000/mcp --header "Authorization: Bearer change-me"
 ```
 

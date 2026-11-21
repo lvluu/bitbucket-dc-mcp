@@ -124,6 +124,7 @@ test("every Bitbucket DC tool works end to end", async () => {
     { name: "getPullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "createPullRequest", args: { projectKey: "PROJ", repoSlug: repo, title: "E2E PR", sourceBranch: "feature/login", targetBranch: "main", reviewers: ["alice"], draft: true } },
     { name: "updatePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, title: "Updated by e2e" } },
+    { name: "setPullRequestStatus", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, status: "APPROVED" } },
     { name: "approvePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "unapprovePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "addPullRequestReviewers", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, reviewers: ["bob", "carol"] } },
@@ -240,6 +241,25 @@ test("every Bitbucket DC tool works end to end", async () => {
   expect(mine.content[0]?.text ?? "").toContain('"id":1');
   const review = (await client.callTool({ name: "listPullRequestsAwaitingMyReview", arguments: { all: true } })) as { content: { text: string }[] };
   expect(review.content[0]?.text ?? "").toContain('"id":1');
+
+  const call = async (name: string, args: Record<string, unknown>) => {
+    const res = (await client.callTool({ name, arguments: args })) as { content: { text: string }[]; isError?: boolean };
+    expect(res.isError).toBeFalsy();
+    return res.content[0]?.text ?? "";
+  };
+  // #49: NEEDS_WORK lands on the token user's participant entry (X-AUSERNAME admin -> slug admin).
+  await call("setPullRequestStatus", { repoSlug: repo, prId: 4, status: "NEEDS_WORK" });
+  expect(await call("getPullRequestParticipants", { repoSlug: repo, prId: 4 })).toMatch(/"name":"admin"[^}]*"status":"NEEDS_WORK"/);
+  // #50: full refs pass through, fork PRs point fromRef at the fork.
+  const forkPr = await call("createPullRequest", { repoSlug: repo, title: "fork", sourceBranch: "refs/heads/feature/x", targetBranch: "main", sourceProjectKey: "~ADMIN" });
+  expect(forkPr).toContain('"id":"refs/heads/feature/x"');
+  expect(forkPr).toContain('"key":"~ADMIN"');
+  // #51: targetBranch retargets the PR.
+  expect(await call("updatePullRequest", { repoSlug: repo, prId: 4, targetBranch: "develop" })).toContain('"id":"refs/heads/develop"');
+  // #53: binary files come back as a one-line note.
+  expect(await call("getFileContent", { repoSlug: repo, path: "logo.png" })).toBe("binary file, 12 bytes, image/png");
+  // #54: projectKey falls back to BITBUCKET_DEFAULT_PROJECT (PROJ) on every tool.
+  expect(await call("getPullRequest", { repoSlug: repo, prId: 4 })).toContain('"id":4');
 
   await client.close();
 

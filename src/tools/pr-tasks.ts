@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { prArgs } from "#lib/params.js";
+import { prArgs, anchorArgs, buildAnchor } from "#lib/params.js";
 import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
@@ -13,7 +13,7 @@ const prTasksModule = {
     description: "Bitbucket DC pull request task operations (blocker comments)",
     register(server: McpServer): void {
         server.registerTool("listPRTasks", {
-            description: "List tasks (blocker comments) on a pull request",
+            description: "List PR tasks (blocker comments)",
             inputSchema: {
                 ...prArgs,
                 limit: z.coerce.number().optional(),
@@ -36,9 +36,7 @@ const prTasksModule = {
             inputSchema: {
                 ...prArgs,
                 text: z.string(),
-                anchorPath: z.string().optional().describe("Inline: file path"),
-                anchorLine: z.coerce.number().optional().describe("Line number"),
-                anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM=old, TO=new file"),
+                ...anchorArgs,
             },
         }, async (args) => {
             try {
@@ -47,17 +45,9 @@ const prTasksModule = {
                     text: args.text,
                     severity: "BLOCKER",
                 };
-                if (args.anchorPath !== undefined) {
-                    const anchor: Record<string, unknown> = {
-                        path: args.anchorPath,
-                        diffType: "EFFECTIVE",
-                    };
-                    if (args.anchorLine !== undefined)
-                        anchor.line = args.anchorLine;
-                    if (args.anchorFileType !== undefined)
-                        anchor.fileType = args.anchorFileType;
+                const anchor = buildAnchor(args);
+                if (anchor !== undefined)
                     body.anchor = anchor;
-                }
                 const response = await client.post(`${prPath(args.projectKey, args.repoSlug, args.prId)}/comments`, body);
                 return jsonResult(response.data);
             }

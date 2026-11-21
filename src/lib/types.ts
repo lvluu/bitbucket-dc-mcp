@@ -8,4 +8,5 @@ export interface PrActivity {
 export interface PrComment {
     severity?: string;
     threadResolved?: boolean;
+    state?: string;
 }

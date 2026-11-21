@@ -11,7 +11,7 @@ const projectsModule = {
     description: "Bitbucket DC project operations",
     register(server: McpServer): void {
         server.registerTool("listProjects", {
-            description: "List Bitbucket Data Center projects",
+            description: "List projects",
             inputSchema: {
                 name: z.string().optional().describe("Name contains"),
                 ...pageArgs,
@@ -36,7 +36,7 @@ const projectsModule = {
             }
         });
         server.registerTool("getProject", {
-            description: "Get details of a specific Bitbucket DC project",
+            description: "Get a project",
             inputSchema: {
                 projectKey: z.string().optional(),
             },
@@ -51,7 +51,7 @@ const projectsModule = {
             }
         });
         server.registerTool("createProject", {
-            description: "Create a new Bitbucket DC project",
+            description: "Create a project",
             inputSchema: {
                 key: z.string().describe("Project key (e.g. PROJ)"),
                 name: z.string(),
@@ -72,7 +72,7 @@ const projectsModule = {
             }
         });
         server.registerTool("updateProject", {
-            description: "Update an existing Bitbucket DC project",
+            description: "Update a project",
             inputSchema: {
                 projectKey: z.string().optional(),
                 name: z.string().optional(),

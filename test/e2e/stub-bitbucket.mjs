@@ -16,6 +16,7 @@ const now = Date.UTC(2024, 0, 1);
 function user(name) {
   return {
     name,
+    slug: name,
     displayName: name[0].toUpperCase() + name.slice(1),
     emailAddress: `${name}@example.com`,
     id: 1000 + name.length,
@@ -353,7 +354,15 @@ on("GET", /^\/rest\/api\/1\.0\/dashboard\/pull-requests$/, (req, res, url) => {
   json(res, 200, paged(filtered, url));
 });
 
+// the token's user is "admin": real DC names it in the X-AUSERNAME header of every response
+on("GET", /^\/rest\/api\/1\.0\/application-properties$/, (req, res) => {
+  res.setHeader("X-AUSERNAME", "admin");
+  json(res, 200, { version: "9.6.0", displayName: "Bitbucket" });
+});
 // users
+on("GET", /^\/rest\/api\/1\.0\/users$/, (req, res, url) => {
+  json(res, 200, paged(filterBy(["admin", "alice", "bob"].map(user), url.searchParams.get("filter")), url));
+});
 on("GET", /^\/rest\/api\/1\.0\/users\/([^/]+)$/, (req, res, url, m) => {
   json(res, 200, user(decodeURIComponent(m[1])));
 });
@@ -383,6 +392,7 @@ on("POST", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests
     target: String(body.toRef?.id ?? "refs/heads/main").replace(/^refs\/heads\//, ""),
   });
   pr.description = body.description ?? "";
+  if (body.fromRef?.repository) pr.fromRef.repository = body.fromRef.repository; // fork PRs
   if (Array.isArray(body.reviewers)) pr.reviewers = body.reviewers.map((r) => ({ ...user(r.user?.name ?? "reviewer"), role: "REVIEWER", approved: false, status: "UNAPPROVED" }));
   (state.prs[key] ??= {})[slug] ??= [];
   state.prs[key][slug].push(pr);
@@ -452,6 +462,17 @@ on("DELETE", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-reques
   pr.reviewers = (pr.reviewers ?? []).filter((r) => r.name !== name);
   noContent(res);
 });
+// set the current user's reviewer status (APPROVED / NEEDS_WORK / UNAPPROVED)
+on("PUT", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/participants\/([^/]+)$/, async (req, res, url, m) => {
+  const pr = findPR(decodeURIComponent(m[1]), decodeURIComponent(m[2]), m[3]);
+  if (!pr) return notFound(res, url.pathname);
+  const body = await readJSON(req);
+  if (!["APPROVED", "NEEDS_WORK", "UNAPPROVED"].includes(body.status)) return json(res, 400, { errors: [{ message: `bad status ${body.status}` }] });
+  const slug = decodeURIComponent(m[4]);
+  const participant = { ...user(slug), role: "REVIEWER", approved: body.status === "APPROVED", status: body.status };
+  pr.reviewers = (pr.reviewers ?? []).filter((r) => r.slug !== slug).concat(participant);
+  json(res, 200, participant);
+});
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/activities$/, (req, res, url, m) => {
   json(res, 200, paged(activitiesFor(decodeURIComponent(m[1]), decodeURIComponent(m[2]), m[3]), url));
 });
@@ -491,6 +512,7 @@ on("PUT", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\
   if (body.title !== undefined) pr.title = body.title;
   if (body.description !== undefined) pr.description = body.description;
   if (body.draft !== undefined) pr.draft = body.draft;
+  if (body.toRef?.id) pr.toRef = { ...pr.toRef, id: body.toRef.id, displayId: String(body.toRef.id).replace(/^refs\/heads\//, "") };
   pr.version++;
   json(res, 200, pr);
 });
@@ -550,7 +572,12 @@ on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/files$/, (req,
   json(res, 200, paged(["README.md", "package.json", "src/index.ts", "src/lib/util.ts", "test/e2e/x.ts"], url));
 });
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/raw\/(.+)$/, (req, res, url, m) => {
-  text(res, 200, `// raw contents of ${decodeURIComponent(m[3])}\nexport const x = 1;\n`);
+  const file = decodeURIComponent(m[3]);
+  if (file.endsWith(".png")) {
+    res.writeHead(200, { "Content-Type": "image/png" });
+    return res.end(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d]));
+  }
+  text(res, 200, `// raw contents of ${file}\nexport const x = 1;\n`);
 });
 on("PUT", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/browse\/(.+)$/, async (req, res, url, m) => {
   await readingBody(req); // consume multipart body

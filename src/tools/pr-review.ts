@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { prArgs } from "#lib/params.js";
-import { getClient, prPath } from "#lib/client.js";
+import { currentUserSlug, getClient, prPath } from "#lib/client.js";
 import type { AxiosInstance } from "axios";
 import { formatError, jsonResult, textResult, type ToolResult } from "#lib/errors.js";
 import type { PendingComment } from "#lib/review-state.js";
@@ -34,14 +34,11 @@ async function postPendingComments(client: AxiosInstance, basePath: string, pend
     }
     return { succeeded, failed };
 }
+const REVIEW_STATUS = ["APPROVED", "NEEDS_WORK", "UNAPPROVED"] as const;
+/** Set the token user's reviewer status (APPROVED, NEEDS_WORK = "Requested changes", UNAPPROVED). */
 async function setReviewStatus(client: AxiosInstance, basePath: string, reviewStatus: string) {
     try {
-        if (reviewStatus === "APPROVED") {
-            await client.post(`${basePath}/approve`);
-        }
-        else {
-            await client.delete(`${basePath}/approve`);
-        }
+        await client.put(`${basePath}/participants/${encodeURIComponent(await currentUserSlug())}`, { status: reviewStatus });
         return { status: reviewStatus, success: true };
     }
     catch (error) {
@@ -77,10 +74,7 @@ const prReviewModule = {
             description: "Publish buffered review comments, then optionally set your review status.",
             inputSchema: {
                 ...prArgs,
-                reviewStatus: z
-                    .enum(["APPROVED", "UNAPPROVED"])
-                    .optional()
-                    .describe("Status to set after posting"),
+                reviewStatus: z.enum(REVIEW_STATUS).optional().describe("Status to set after posting"),
             },
         }, async (args) => {
             try {
@@ -116,6 +110,16 @@ const prReviewModule = {
             catch (error) {
                 return errorResult(error);
             }
+        });
+        server.registerTool("setPullRequestStatus", {
+            description: "Set your review status on a PR (NEEDS_WORK = request changes).",
+            inputSchema: {
+                ...prArgs,
+                status: z.enum(REVIEW_STATUS),
+            },
+        }, async (args) => {
+            const result = await setReviewStatus(getClient(), prPath(args.projectKey, args.repoSlug, args.prId), args.status);
+            return result.success ? jsonResult(result) : { content: [{ type: "text", text: result.error ?? "failed" }], isError: true };
         });
         server.registerTool("discardReview", {
             description: "Drop the review and its buffered comments.",

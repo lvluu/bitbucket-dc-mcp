@@ -4,7 +4,7 @@
 [![CI](https://github.com/lvluu/bitbucket-dc-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/lvluu/bitbucket-dc-mcp/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[MCP](https://modelcontextprotocol.io) server for the **Bitbucket Data Center REST API**: 74 tools for projects,
+[MCP](https://modelcontextprotocol.io) server for the **Bitbucket Data Center REST API**: 75 tools for projects,
 repositories, pull requests, review comments, diffs, branches, commits, files, builds and merge queues.
 Results are squeezed to save tokens.
 
@@ -18,7 +18,6 @@ Needs Node.js 22+ and a Bitbucket DC personal access token.
 claude mcp add bitbucket-dc \
   -e BITBUCKET_URL=https://bitbucket.example.com \
   -e BITBUCKET_TOKEN=your-token \
-  -e MCP_TRANSPORT=stdio \
   -- npx -y @shibainu16/bitbucket-dc-mcp
 ```
 

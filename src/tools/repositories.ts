@@ -13,7 +13,7 @@ const repositoriesModule = {
     description: "Bitbucket DC repository operations",
     register(server: McpServer): void {
         server.registerTool("listRepositories", {
-            description: "List repositories in a Bitbucket DC project",
+            description: "List repositories in a project",
             inputSchema: {
                 projectKey: z.string().optional(),
                 name: z.string().optional().describe("Name contains"),
@@ -39,7 +39,7 @@ const repositoriesModule = {
             }
         });
         server.registerTool("getRepository", {
-            description: "Get details of a specific repository",
+            description: "Get a repository",
             inputSchema: {
                 ...repoArgs,
             },
@@ -54,7 +54,7 @@ const repositoriesModule = {
             }
         });
         server.registerTool("createRepository", {
-            description: "Create a new repository in a project",
+            description: "Create a repository",
             inputSchema: {
                 projectKey: z.string().optional(),
                 name: z.string(),
@@ -101,7 +101,7 @@ const repositoriesModule = {
             }
         });
         server.registerTool("getDefaultBranch", {
-            description: "Get the default branch of a repository",
+            description: "Get the default branch",
             inputSchema: {
                 ...repoArgs,
             },
@@ -116,7 +116,7 @@ const repositoriesModule = {
             }
         });
         server.registerTool("setDefaultBranch", {
-            description: "Set the default branch of a repository",
+            description: "Set the default branch",
             inputSchema: {
                 ...repoArgs,
                 branchId: z.string().describe("Branch ID (e.g. refs/heads/main)"),

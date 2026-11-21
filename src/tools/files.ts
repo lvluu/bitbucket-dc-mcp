@@ -6,13 +6,25 @@ import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 // Shared description constants
 const DESC_BRANCH_TAG_COMMIT = "Branch, tag, or commit hash";
+/** UTF-8 text as is; binary (NUL byte or invalid UTF-8) as a one-line note, so no garbage reaches the model. */
+export function decodeText(bytes: Uint8Array, contentType: string): string {
+    const note = `binary file, ${String(bytes.length)} bytes, ${contentType}`;
+    if (bytes.includes(0))
+        return note;
+    try {
+        return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    }
+    catch {
+        return note;
+    }
+}
 const filesModule = {
     type: "tool",
     name: "files",
     description: "Bitbucket DC file browsing and content operations",
     register(server: McpServer): void {
         server.registerTool("browseFiles", {
-            description: "Browse files and directories in a repository",
+            description: "List a directory",
             inputSchema: {
                 ...repoArgs,
                 path: z.string().optional().default("").describe("Path within the repository"),
@@ -46,15 +58,15 @@ const filesModule = {
                 const params: Record<string, unknown> = {};
                 if (args.at !== undefined)
                     params.at = args.at;
-                const response = await client.get(repoFilePath(args.projectKey, args.repoSlug, "raw", args.path), { params, responseType: "text", headers: { Accept: "application/octet-stream" } });
-                return textResult(response.data);
+                const response = await client.get<ArrayBuffer>(repoFilePath(args.projectKey, args.repoSlug, "raw", args.path), { params, responseType: "arraybuffer", headers: { Accept: "application/octet-stream" } });
+                return textResult(decodeText(new Uint8Array(response.data), String(response.headers["content-type"] ?? "unknown type")));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
             }
         });
         server.registerTool("editFile", {
-            description: "Edit (create or update) a file in the repository",
+            description: "Create or update a file (commits it)",
             inputSchema: {
                 ...repoArgs,
                 path: z.string(),

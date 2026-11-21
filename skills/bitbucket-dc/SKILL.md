@@ -13,8 +13,10 @@ https://github.com/lvluu/bitbucket-dc-mcp/blob/main/docs/agent-install.md
 - Every repo tool needs `repoSlug`, plus `projectKey` unless the server sets `BITBUCKET_DEFAULT_PROJECT`. From a clone URL `https://host/scm/PROJ/repo.git` or
   `ssh://git@host:7999/proj/repo.git`: projectKey = `PROJ` (upper case), repoSlug = `repo`.
 - From a PR link `.../projects/PROJ/repos/repo/pull-requests/42`: `prId` = 42.
-- Branch names: pass the short name (`main`, `feature/x`) to create/delete/PR tools; `listPullRequests.at` wants
-  the full ref (`refs/heads/main`).
+- Branch names: short (`main`, `feature/x`) or full (`refs/heads/main`) both work for PR tools.
+- PR from a fork: `createPullRequest` with `sourceProjectKey` (e.g. `~USER`) and/or `sourceRepoSlug`.
+- `updatePullRequest` retargets with `targetBranch`; `reviewers` replaces the whole list.
+- `getFileContent` returns `binary file, <size> bytes, <type>` for binary files.
 
 ## Save tokens
 
@@ -41,7 +43,8 @@ https://github.com/lvluu/bitbucket-dc-mcp/blob/main/docs/agent-install.md
    `anchorFileType: TO` for new code). Comments are buffered, not posted. The review belongs to this MCP
    session only (other sessions post at once) and is dropped when the session closes (HTTP: after
    `MCP_SESSION_IDLE_TTL_MS` idle).
-4. Show the user `listPendingReviewComments`. On their go: `finishReview` (optionally `reviewStatus: APPROVED`),
+4. Show the user `listPendingReviewComments`. On their go: `finishReview` (optionally `reviewStatus: APPROVED`
+   or `NEEDS_WORK` to request changes; `setPullRequestStatus` does the same without a review),
    else `discardReview`. Comments post one by one; failures are listed in the result, and the status is
    not set when every comment failed.
 5. Use `addBlockerComment` only for must-fix items; it creates a task that blocks merge.
