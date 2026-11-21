@@ -81,11 +81,18 @@ export function repoFilePath(projectKey: string | undefined, repoSlug: string, r
     const base = `${repoPath(projectKey, repoSlug)}/${resource}`;
     return filePath !== "" ? `${base}/${filePath}` : base;
 }
+/** `<base>/<encoded path>`, or `<base>` when path is empty or omitted */
+function withFilePath(base: string, path: string | undefined): string {
+    const filePath = path !== undefined ? encodePath(path) : "";
+    return filePath !== "" ? `${base}/${filePath}` : base;
+}
 /** Build the DC API path for a commit diff: whole commit, or a single file when `path` is given */
 export function commitDiffPath(projectKey: string | undefined, repoSlug: string, commitId: string, path?: string): string {
-    const base = `${repoPath(projectKey, repoSlug)}/commits/${encodeURIComponent(commitId)}/diff`;
-    const filePath = path ? encodePath(path) : "";
-    return filePath !== "" ? `${base}/${filePath}` : base;
+    return withFilePath(`${repoPath(projectKey, repoSlug)}/commits/${encodeURIComponent(commitId)}/diff`, path);
+}
+/** Build the DC API path for a pull request diff: whole PR, or a single file when `path` is given */
+export function prDiffPath(projectKey: string | undefined, repoSlug: string, prId: number, path?: string): string {
+    return withFilePath(`${prPath(projectKey, repoSlug, prId)}/diff`, path);
 }
 /** Build the DC API path for a pull request */
 export function prPath(projectKey: string | undefined, repoSlug: string, prId: number | string): string {

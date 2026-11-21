@@ -10,6 +10,11 @@ export const pageArgs = {
     start: z.coerce.number().optional(),
     all: z.boolean().optional().describe("All pages, max 1000"),
 };
+/** Diff params: one file or all, context lines (default 3). */
+export const diffArgs = {
+    path: z.string().optional().describe("One file; omit for all"),
+    contextLines: z.coerce.number().optional().describe("Default 3"),
+};
 /** Inline-comment anchor params, shared by addPRComment and addBlockerComment. */
 export const anchorArgs = {
     anchorPath: z.string().optional().describe("Inline: file path"),

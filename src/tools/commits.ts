@@ -1,10 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { repoArgs, pageArgs } from "#lib/params.js";
+import { repoArgs, pageArgs, diffArgs } from "#lib/params.js";
 import { commitDiffPath, getClient, repoPath } from "#lib/client.js";
-import { formatError, jsonResult } from "#lib/errors.js";
+import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
-import { summarizeCommit, summarizeArray } from "#lib/field-filter.js";
+import { summarizeChange, summarizeCommit, summarizeArray } from "#lib/field-filter.js";
+import { diffToText } from "#lib/diff-text.js";
 // Shared description constants
 const commitsModule = {
     type: "tool",
@@ -65,28 +66,25 @@ const commitsModule = {
             try {
                 const client = getClient();
                 const result = await fetchPage(client, `${repoPath(args.projectKey, args.repoSlug)}/commits/${encodeURIComponent(args.commitId)}/changes`, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(pageResult(result, result.values));
+                return jsonResult(pageResult(result, summarizeArray(result.values, summarizeChange)));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
             }
         });
         server.registerTool("getCommitDiff", {
-            description: "Get a commit diff (whole commit, or one file)",
+            description: "Get a commit diff as unified text (whole commit, or one file)",
             inputSchema: {
                 ...repoArgs,
                 commitId: z.string(),
-                path: z.string().optional().describe("One file; omit for all"),
-                contextLines: z.coerce.number().optional().describe("Number of context lines"),
+                ...diffArgs,
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                const params: Record<string, unknown> = {};
-                if (args.contextLines !== undefined)
-                    params.contextLines = args.contextLines;
+                const params = { contextLines: args.contextLines ?? 3 };
                 const response = await client.get(commitDiffPath(args.projectKey, args.repoSlug, args.commitId, args.path), { params });
-                return jsonResult(response.data);
+                return textResult(diffToText(response.data));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

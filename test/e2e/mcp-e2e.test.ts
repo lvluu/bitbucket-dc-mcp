@@ -234,7 +234,7 @@ test("every Bitbucket DC tool works end to end", async () => {
   const fileDiff = (await client.callTool({ name: "getCommitDiff", arguments: { projectKey: "PROJ", repoSlug: repo, commitId, path: "src/my file.ts" } })) as {
     content: { text: string }[];
   };
-  expect(fileDiff.content[0]?.text ?? "").toContain('"path":"src/my file.ts"');
+  expect(fileDiff.content[0]?.text ?? "").toContain("+++ b/src/my file.ts\n@@ -1,2 +1,3 @@\n line\n+added");
 
   // The dashboard returns the current user's PRs and PRs awaiting review.
   const mine = (await client.callTool({ name: "listMyPullRequests", arguments: { all: true } })) as { content: { text: string }[] };
@@ -258,6 +258,10 @@ test("every Bitbucket DC tool works end to end", async () => {
   expect(await call("updatePullRequest", { repoSlug: repo, prId: 4, targetBranch: "develop" })).toContain('"id":"refs/heads/develop"');
   // #53: binary files come back as a one-line note.
   expect(await call("getFileContent", { repoSlug: repo, path: "logo.png" })).toBe("binary file, 12 bytes, image/png");
+  // #60: compact changes and commits.
+  expect(await call("getPullRequestChanges", { repoSlug: repo, prId: 1 })).toContain('{"path":"src/lib/new-name.ts","type":"MOVE","srcPath":"src/lib/old-name.ts"}');
+  expect(await call("getPullRequestDiff", { repoSlug: repo, prId: 1, path: "src/a.ts" })).toStartWith("--- a/src/a.ts");
+  expect(await call("getPullRequestCommits", { repoSlug: repo, prId: 1, limit: 1 })).toMatch(/"message":"Commit \d+: change number \d+","author":"alice"/);
   // #54: projectKey falls back to BITBUCKET_DEFAULT_PROJECT (PROJ) on every tool.
   expect(await call("getPullRequest", { repoSlug: repo, prId: 4 })).toContain('"id":4');
 

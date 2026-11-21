@@ -4,6 +4,7 @@ import {
     summarizeArray,
     summarizeBranch,
     summarizeComment,
+    summarizeChange,
     summarizeCommit,
     summarizeProject,
     summarizePullRequest,
@@ -212,68 +213,50 @@ describe("field-filter summarizers", () => {
     });
 
     describe("summarizeCommit", () => {
-        it("extracts essential fields and nested author/committer objects", () => {
-            const fullCommit = {
+        it("keeps full id, first message line, author name and date; drops committer equal to author", () => {
+            const summary = summarizeCommit({
                 id: "commit-hash-full",
                 displayId: "commit-hash",
-                message: "Commit message",
-                author: {
-                    name: "Author Person",
-                    emailAddress: "author@example.com",
-                    avatarUrl: "http://avatar",
-                },
+                message: "Subject line\n\nLong body",
+                author: { name: "Author Person", emailAddress: "author@example.com", avatarUrl: "http://avatar" },
                 authorTimestamp: 1610000000000,
-                committer: {
-                    name: "Committer Person",
-                    emailAddress: "committer@example.com",
-                    avatarUrl: "http://avatar",
-                },
+                committer: { name: "Author Person", emailAddress: "author@example.com" },
                 committerTimestamp: 1610000005000,
                 parents: [{ id: "parent-hash", displayId: "parent" }],
                 properties: { jiraKeys: ["KEY-1"] },
-            };
-
-            const summary = summarizeCommit(fullCommit);
-
+            });
             expect(summary).toEqual({
                 id: "commit-hash-full",
-                displayId: "commit-hash",
-                message: "Commit message",
-                author: {
-                    name: "Author Person",
-                    emailAddress: "author@example.com",
-                },
-                authorTimestamp: 1610000000000,
-                committer: {
-                    name: "Committer Person",
-                    emailAddress: "committer@example.com",
-                },
-                committerTimestamp: 1610000005000,
-                parents: [{ id: "parent-hash", displayId: "parent" }],
+                message: "Subject line",
+                author: "Author Person",
+                date: 1610000000000,
+                committer: undefined,
+                parents: ["parent-hash"],
             });
+        });
 
-            expect(summary.properties).toBeUndefined();
+        it("keeps a committer that differs from the author", () => {
+            expect(summarizeCommit({ id: "x", author: { name: "a" }, committer: { name: "b" } }).committer).toBe("b");
         });
 
         it("handles missing author and committer gracefully", () => {
-            const minimalCommit = {
+            expect(summarizeCommit({ id: "commit-hash-full", message: "Initial commit" })).toEqual({
                 id: "commit-hash-full",
-                displayId: "commit-hash",
-                message: "Initial commit",
-            };
-
-            const summary = summarizeCommit(minimalCommit);
-
-            expect(summary).toEqual({
-                id: "commit-hash-full",
-                displayId: "commit-hash",
                 message: "Initial commit",
                 author: undefined,
-                authorTimestamp: undefined,
+                date: undefined,
                 committer: undefined,
-                committerTimestamp: undefined,
                 parents: undefined,
             });
+        });
+    });
+
+    describe("summarizeChange", () => {
+        it("keeps path and type, srcPath only for moves", () => {
+            expect(summarizeChange({ contentId: "c1", fromContentId: "c0", path: { toString: "a.ts", components: ["a.ts"] }, srcPath: { toString: "a.ts" }, type: "MODIFY", properties: { gitChangeType: "MODIFY" } }))
+                .toEqual({ path: "a.ts", type: "MODIFY", srcPath: undefined });
+            expect(summarizeChange({ path: { toString: "b.ts" }, srcPath: { toString: "a.ts" }, type: "MOVE" }))
+                .toEqual({ path: "b.ts", type: "MOVE", srcPath: "a.ts" });
         });
     });
 

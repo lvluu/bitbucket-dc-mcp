@@ -20,8 +20,9 @@ https://github.com/lvluu/bitbucket-dc-mcp/blob/main/docs/agent-install.md
 
 ## Save tokens
 
-- Start small: `getPullRequestChanges` (file list) before `getPullRequestDiff`; `getCommitDiff` with `path`
-  for one file.
+- Start small: `getPullRequestChanges` (file list) before `getPullRequestDiff`; pass `path` to either diff tool
+  for one file. Diffs come back as unified text with 3 context lines (`contextLines` to change).
+- List commits show the first message line only; `getCommit` has the full message.
 - Lists are paged: read `isLastPage` / `nextPageStart`; use `all: true` only when you need everything (cap 1000).
 - `listPRComments` returns unresolved comments by default; pass `state: ALL` only when asked.
 - Compare two branches/tags/hashes with `compareRefs` (commits reachable from `to` but not `from`). Look up a

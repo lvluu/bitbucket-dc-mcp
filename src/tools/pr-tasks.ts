@@ -1,12 +1,12 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { prArgs, anchorArgs, buildAnchor } from "#lib/params.js";
+import { prArgs, pageArgs, anchorArgs, buildAnchor } from "#lib/params.js";
+import { summarizeArray, summarizeComment } from "#lib/field-filter.js";
 import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchFiltered, pageResult } from "#lib/pagination.js";
 // Shared description constants
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const prTasksModule = {
     type: "tool",
     name: "pr-tasks",
@@ -16,16 +16,14 @@ const prTasksModule = {
             description: "List PR tasks (blocker comments)",
             inputSchema: {
                 ...prArgs,
-                limit: z.coerce.number().optional(),
-                start: z.coerce.number().optional(),
-                all: z.boolean().optional().default(true).describe(DESC_FETCH_ALL_PAGES),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
                 const client = getClient();
                 // In DC, tasks are blocker comments. Fetch activities and filter.
                 const result = await fetchFiltered<PrActivity, PrComment>(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/activities`, (a) => a.action === "COMMENTED" && a.comment != null && a.comment.severity === "BLOCKER" ? a.comment as PrComment : undefined, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(pageResult(result, result.values));
+                return jsonResult(pageResult(result, summarizeArray(result.values, summarizeComment)));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
