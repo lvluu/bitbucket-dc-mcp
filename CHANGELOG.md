@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.10.0](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.9.1...v1.10.0) (2026-11-21)
+
+
+### Features
+
+* request changes, fork PRs, retarget PRs, stdio by default; fix resolved tasks and binary files ([dc349aa](https://github.com/lvluu/bitbucket-dc-mcp/commit/dc349aa329633f6e602b3df25f1faeb33710cadb)), closes [#49](https://github.com/lvluu/bitbucket-dc-mcp/issues/49) [#50](https://github.com/lvluu/bitbucket-dc-mcp/issues/50) [#51](https://github.com/lvluu/bitbucket-dc-mcp/issues/51) [#52](https://github.com/lvluu/bitbucket-dc-mcp/issues/52) [#53](https://github.com/lvluu/bitbucket-dc-mcp/issues/53) [#55](https://github.com/lvluu/bitbucket-dc-mcp/issues/55)
+
+
+### Bug Fixes
+
+* optional projectKey on forkRepository, tool budget at the 25 % line ([64e14dc](https://github.com/lvluu/bitbucket-dc-mcp/commit/64e14dcfb9dce3d0593e78da7e7b263be62b9c39))
+
+
+### Performance Improvements
+
+* shared tool params, optional projectKey everywhere, shorter definitions ([502de18](https://github.com/lvluu/bitbucket-dc-mcp/commit/502de1817e2b0f16ed2bf10737fbd54844c15b72)), closes [#54](https://github.com/lvluu/bitbucket-dc-mcp/issues/54) [#61](https://github.com/lvluu/bitbucket-dc-mcp/issues/61)
+* unified-text diffs, compact change and commit lists, paged listPRTasks ([e73dffd](https://github.com/lvluu/bitbucket-dc-mcp/commit/e73dffdd345c9c238001aed0e4ba110895068299)), closes [#60](https://github.com/lvluu/bitbucket-dc-mcp/issues/60)
+
 ## [1.9.1](https://github.com/lvluu/bitbucket-dc-mcp/compare/v1.9.0...v1.9.1) (2026-11-21)
 
 
