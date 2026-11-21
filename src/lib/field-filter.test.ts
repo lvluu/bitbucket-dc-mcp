@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import {
+    summarizeActivity,
     summarizeArray,
     summarizeBranch,
+    summarizeComment,
     summarizeCommit,
     summarizeProject,
     summarizePullRequest,
@@ -327,6 +329,131 @@ describe("field-filter summarizers", () => {
                 { doubled: 4 },
                 { doubled: 6 },
             ]);
+        });
+    });
+
+    describe("summarizeComment", () => {
+        it("extracts essential fields and drops noisy ones", () => {
+            const fullComment = {
+                id: 42,
+                version: 3,
+                text: "Please fix this line",
+                author: {
+                    name: "john_doe",
+                    displayName: "John Doe",
+                    emailAddress: "john@example.com",
+                    avatarUrl: "https://avatar",
+                },
+                createdDate: 1600000000000,
+                updatedDate: 1600000005000,
+                threadResolved: false,
+                severity: "NORMAL",
+                state: "OPEN",
+                properties: { jiraKeys: ["KEY-1"] },
+                links: { self: [] },
+            };
+
+            const summary = summarizeComment(fullComment);
+
+            expect(summary).toEqual({
+                id: 42,
+                version: 3,
+                text: "Please fix this line",
+                author: {
+                    name: "john_doe",
+                    displayName: "John Doe",
+                },
+                createdDate: 1600000000000,
+                updatedDate: 1600000005000,
+                threadResolved: false,
+                severity: "NORMAL",
+                state: "OPEN",
+                comments: undefined,
+            });
+            expect(summary.properties).toBeUndefined();
+            expect(summary.links).toBeUndefined();
+        });
+
+        it("recursively summarizes reply threads", () => {
+            const parent = {
+                id: 1,
+                text: "parent",
+                author: { name: "alice", displayName: "Alice" },
+                comments: [
+                    { id: 2, text: "reply", author: { name: "bob", displayName: "Bob", emailAddress: "b@x" } },
+                ],
+            };
+
+            const summary = summarizeComment(parent);
+
+            expect(summary.comments).toEqual([
+                {
+                    id: 2,
+                    version: undefined,
+                    text: "reply",
+                    author: { name: "bob", displayName: "Bob" },
+                    createdDate: undefined,
+                    updatedDate: undefined,
+                    threadResolved: undefined,
+                    severity: undefined,
+                    state: undefined,
+                    comments: undefined,
+                },
+            ]);
+        });
+    });
+
+    describe("summarizeActivity", () => {
+        it("extracts essential activity fields and summarizes embedded comment", () => {
+            const activity = {
+                id: 9,
+                action: "COMMENTED",
+                actionStatus: "EFFECTIVE",
+                createdDate: 1600000000000,
+                user: {
+                    name: "jane",
+                    displayName: "Jane",
+                    emailAddress: "jane@example.com",
+                },
+                comment: {
+                    id: 7,
+                    text: "nice work",
+                    author: { name: "jane", displayName: "Jane" },
+                },
+                commit: {
+                    id: "full-hash",
+                    displayId: "abc1234",
+                },
+                fromHash: "old-hash",
+                toHash: "new-hash",
+                properties: { foo: "bar" },
+            };
+
+            const summary = summarizeActivity(activity);
+
+            expect(summary).toEqual({
+                id: 9,
+                action: "COMMENTED",
+                actionStatus: "EFFECTIVE",
+                createdDate: 1600000000000,
+                user: { name: "jane", displayName: "Jane" },
+                comment: {
+                    id: 7,
+                    version: undefined,
+                    text: "nice work",
+                    author: { name: "jane", displayName: "Jane" },
+                    createdDate: undefined,
+                    updatedDate: undefined,
+                    threadResolved: undefined,
+                    severity: undefined,
+                    state: undefined,
+                    comments: undefined,
+                },
+                commit: { id: "full-hash", displayId: "abc1234" },
+                fromHash: "old-hash",
+                toHash: "new-hash",
+            });
+            expect(summary.properties).toBeUndefined();
         });
     });
 });

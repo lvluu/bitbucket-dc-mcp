@@ -62,7 +62,7 @@ const pullRequestsModule = {
             try {
                 const client = getClient();
                 const response = await client.get(prPath(args.projectKey, args.repoSlug, args.prId));
-                return jsonResult(response.data);
+                return jsonResult(summarizePullRequest(response.data));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

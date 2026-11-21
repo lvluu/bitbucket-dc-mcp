@@ -195,6 +195,64 @@ export function summarizeCodeSearchResult(hit: Loose): Loose {
     };
 }
 /**
+ * Summarizes a pull request comment (top-level or reply) with only essential fields.
+ * Keeps enough thread context to understand the conversation without the heavy raw object.
+ */
+export function summarizeComment(comment: Loose): Loose {
+    const author = comment.author as UserLike | undefined;
+    const replies = Array.isArray(comment.comments)
+        ? comment.comments.map((reply: Loose) => summarizeComment(reply))
+        : undefined;
+    return {
+        id: comment.id,
+        version: comment.version,
+        text: comment.text,
+        author: author
+            ? {
+                name: author.name,
+                displayName: author.displayName,
+            }
+            : undefined,
+        createdDate: comment.createdDate,
+        updatedDate: comment.updatedDate,
+        threadResolved: comment.threadResolved,
+        severity: comment.severity,
+        state: comment.state,
+        comments: replies,
+    };
+}
+
+/**
+ * Summarizes a pull request activity feed entry (comment, approve, merge, etc.) with only
+ * the essential fields. Comments inside the entry go through summarizeComment.
+ */
+export function summarizeActivity(activity: Loose): Loose {
+    const user = activity.user as UserLike | undefined;
+    const commit = activity.commit as { id?: unknown; displayId?: unknown } | undefined;
+    return {
+        id: activity.id,
+        action: activity.action,
+        actionStatus: activity.actionStatus,
+        createdDate: activity.createdDate,
+        user: user
+            ? {
+                name: user.name,
+                displayName: user.displayName,
+            }
+            : undefined,
+        comment: activity.comment ? summarizeComment(activity.comment as Loose) : undefined,
+        commit: commit
+            ? {
+                id: commit.id,
+                displayId: commit.displayId,
+            }
+            : undefined,
+        fromHash: activity.fromHash,
+        toHash: activity.toHash,
+    };
+}
+
+/**
  * Maps an array of items through a summarizer function.
  * Returns undefined if the array is empty.
  */
