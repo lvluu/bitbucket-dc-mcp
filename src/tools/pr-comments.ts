@@ -4,6 +4,7 @@ import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchFiltered, pageResult } from "#lib/pagination.js";
+import { summarizeArray, summarizeComment } from "#lib/field-filter.js";
 import { hasActiveReview, addPendingComment, reviewKey } from "#lib/review-state.js";
 // Shared description constants
 const DESC_PROJECT_KEY = "Project key";
@@ -44,7 +45,8 @@ const prCommentsModule = {
                         return c.threadResolved === true ? c : undefined;
                     return c.threadResolved !== true ? c : undefined; // UNRESOLVED: not resolved or no threadResolved property
                 }, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(pageResult(result, result.values));
+                const summaryValues = summarizeArray(result.values, summarizeComment);
+                return jsonResult(pageResult(result, summaryValues));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
