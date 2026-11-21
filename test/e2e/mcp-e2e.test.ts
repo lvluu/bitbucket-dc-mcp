@@ -119,6 +119,8 @@ test("every Bitbucket DC tool works end to end", async () => {
     { name: "setDefaultBranch", args: { projectKey: "PROJ", repoSlug: repo, branchId: "refs/heads/develop" } },
 
     { name: "listPullRequests", args: { projectKey: "PROJ", repoSlug: repo, all: true } },
+    { name: "listMyPullRequests", args: { all: true } },
+    { name: "listPullRequestsAwaitingMyReview", args: { all: true } },
     { name: "getPullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1 } },
     { name: "createPullRequest", args: { projectKey: "PROJ", repoSlug: repo, title: "E2E PR", sourceBranch: "feature/login", targetBranch: "main", reviewers: ["alice"], draft: true } },
     { name: "updatePullRequest", args: { projectKey: "PROJ", repoSlug: repo, prId: 1, title: "Updated by e2e" } },
@@ -232,6 +234,12 @@ test("every Bitbucket DC tool works end to end", async () => {
     content: { text: string }[];
   };
   expect(fileDiff.content[0]?.text ?? "").toContain('"path":"src/my file.ts"');
+
+  // The dashboard returns the current user's PRs and PRs awaiting review.
+  const mine = (await client.callTool({ name: "listMyPullRequests", arguments: { all: true } })) as { content: { text: string }[] };
+  expect(mine.content[0]?.text ?? "").toContain('"id":1');
+  const review = (await client.callTool({ name: "listPullRequestsAwaitingMyReview", arguments: { all: true } })) as { content: { text: string }[] };
+  expect(review.content[0]?.text ?? "").toContain('"id":1');
 
   await client.close();
 

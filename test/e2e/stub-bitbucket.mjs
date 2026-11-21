@@ -338,6 +338,21 @@ on("PUT", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/default-branch
   json(res, 200, repo.defaultBranch);
 });
 
+// dashboard: pull requests scoped to the authenticated user
+// The stub treats "admin" as the current user (the PR author) and "alice" as
+// a reviewer, so both roles return the seeded PRs.
+on("GET", /^\/rest\/api\/1\.0\/dashboard\/pull-requests$/, (req, res, url) => {
+  const role = url.searchParams.get("role");
+  const st = url.searchParams.get("state");
+  const all = Object.values(state.prs).flatMap((byRepo) =>
+    Object.values(byRepo).flatMap((list) => list));
+  let filtered = all;
+  if (role === "AUTHOR") filtered = all.filter((p) => p.author?.name === "admin");
+  else if (role === "REVIEWER") filtered = all.filter((p) => (p.reviewers ?? []).some((r) => r.name === "alice"));
+  if (st && st !== "ALL") filtered = filtered.filter((p) => p.state === st);
+  json(res, 200, paged(filtered, url));
+});
+
 // users
 on("GET", /^\/rest\/api\/1\.0\/users\/([^/]+)$/, (req, res, url, m) => {
   json(res, 200, user(decodeURIComponent(m[1])));

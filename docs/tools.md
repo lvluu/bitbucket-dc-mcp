@@ -1,9 +1,10 @@
 # Tools
 
-72 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
+74 tools, one module per group in `src/tools/`. `BITBUCKET_DEFAULT_PROJECT` fills `projectKey` only in `listRepositories` and `listRepositoryWebhooks`.
 
 | Group | Tools |
 |-------|-------|
+| My pull requests (dashboard) | `listMyPullRequests`, `listPullRequestsAwaitingMyReview` |
 | Projects | `listProjects`, `getProject`, `createProject`, `updateProject` |
 | Repositories | `listRepositories`, `getRepository`, `createRepository`, `forkRepository`, `getDefaultBranch`, `setDefaultBranch` |
 | Pull requests | `listPullRequests`, `getPullRequest`, `createPullRequest`, `updatePullRequest`, `mergePullRequest`, `declinePullRequest`, `reopenPullRequest`, `approvePullRequest`, `unapprovePullRequest`, `markPullRequestAsDraft`, `canMergePullRequest`, `addPullRequestReviewers`, `removePullRequestReviewer` |
