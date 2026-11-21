@@ -1,3 +1,4 @@
+import { resolveProject } from "#lib/client.js";
 /**
  * In-memory review session state management.
  *
@@ -43,8 +44,8 @@ function requireSession(key: string, owner: ReviewOwner): ReviewSession {
     return session;
 }
 
-export function reviewKey(projectKey: string, repoSlug: string, prId: number | string): string {
-    return `${projectKey}/${repoSlug}/${String(prId)}`;
+export function reviewKey(projectKey: string | undefined, repoSlug: string, prId: number | string): string {
+    return `${resolveProject(projectKey)}/${repoSlug}/${String(prId)}`;
 }
 /** True only for the owning session; other sessions never buffer into someone else's review. */
 export function hasActiveReview(key: string, owner: ReviewOwner): boolean {

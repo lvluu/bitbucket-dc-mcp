@@ -1,12 +1,9 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { pageArgs } from "#lib/params.js";
 import { getClient, getOriginUrl } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
-const DESC_COMMIT_ID = "Full 40-character commit hash";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 /** Build-status REST API lives under /rest/build-status/1.0, not /rest/api/1.0 */
 function buildStatusPath(commitId: string): string {
     return `${getOriginUrl()}/rest/build-status/1.0/commits/${encodeURIComponent(commitId)}`;
@@ -19,11 +16,9 @@ const buildStatusModule = {
         server.registerTool("getBuildStatuses", {
             description: "Get build statuses for a specific commit",
             inputSchema: {
-                commitId: z.string().describe(DESC_COMMIT_ID),
+                commitId: z.string(),
                 key: z.string().optional().describe("Filter by a specific build key"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -42,13 +37,13 @@ const buildStatusModule = {
             }
         });
         server.registerTool("getBuildStatusStats", {
-            description: "Get build status statistics (successful, failed, in-progress counts) for a commit",
+            description: "Count build statuses of a commit",
             inputSchema: {
-                commitId: z.string().describe(DESC_COMMIT_ID),
+                commitId: z.string(),
                 includeUnique: z
                     .boolean()
                     .optional()
-                    .describe("Include a unique build result if there is only one failed, in-progress, or successful build"),
+                    .describe("Include the single build when only one exists"),
             },
         }, async (args) => {
             try {

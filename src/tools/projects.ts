@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getClient } from "#lib/client.js";
+import { pageArgs } from "#lib/params.js";
+import { getClient, projectPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeProject, summarizeArray } from "#lib/field-filter.js";
@@ -12,10 +13,8 @@ const projectsModule = {
         server.registerTool("listProjects", {
             description: "List Bitbucket Data Center projects",
             inputSchema: {
-                name: z.string().optional().describe("Filter projects by name (partial match)"),
-                limit: z.coerce.number().optional().describe("Number of items per page (default 25, max 100)"),
-                start: z.coerce.number().optional().describe("Start index for pagination"),
-                all: z.boolean().optional().describe("Fetch all pages (up to 1000 items)"),
+                name: z.string().optional().describe("Name contains"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -39,12 +38,12 @@ const projectsModule = {
         server.registerTool("getProject", {
             description: "Get details of a specific Bitbucket DC project",
             inputSchema: {
-                projectKey: z.string().describe("The project key (e.g. PROJ)"),
+                projectKey: z.string().optional(),
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                const response = await client.get(`/projects/${encodeURIComponent(args.projectKey)}`);
+                const response = await client.get(projectPath(args.projectKey));
                 return jsonResult(response.data);
             }
             catch (error) {
@@ -55,8 +54,8 @@ const projectsModule = {
             description: "Create a new Bitbucket DC project",
             inputSchema: {
                 key: z.string().describe("Project key (e.g. PROJ)"),
-                name: z.string().describe("Project name"),
-                description: z.string().optional().describe("Project description"),
+                name: z.string(),
+                description: z.string().optional(),
             },
         }, async (args) => {
             try {
@@ -75,9 +74,9 @@ const projectsModule = {
         server.registerTool("updateProject", {
             description: "Update an existing Bitbucket DC project",
             inputSchema: {
-                projectKey: z.string().describe("The project key"),
-                name: z.string().optional().describe("New project name"),
-                description: z.string().optional().describe("New project description"),
+                projectKey: z.string().optional(),
+                name: z.string().optional(),
+                description: z.string().optional(),
             },
         }, async (args) => {
             try {
@@ -87,7 +86,7 @@ const projectsModule = {
                     data.name = args.name;
                 if (args.description !== undefined)
                     data.description = args.description;
-                const response = await client.put(`/projects/${encodeURIComponent(args.projectKey)}`, data);
+                const response = await client.put(projectPath(args.projectKey), data);
                 return jsonResult(response.data);
             }
             catch (error) {

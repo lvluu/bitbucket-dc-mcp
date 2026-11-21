@@ -1,5 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { prArgs, pageArgs } from "#lib/params.js";
 import type { PrActivity, PrComment } from "#lib/types.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
@@ -7,29 +8,17 @@ import { fetchFiltered, pageResult } from "#lib/pagination.js";
 import { summarizeArray, summarizeComment } from "#lib/field-filter.js";
 import { hasActiveReview, addPendingComment, reviewKey } from "#lib/review-state.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
-const DESC_PR_ID = "Pull request ID";
-const DESC_COMMENT_ID = "Comment ID";
-const DESC_COMMENT_VERSION = "Comment version for optimistic locking";
 const prCommentsModule = {
     type: "tool",
     name: "pr-comments",
     description: "Bitbucket DC pull request comment operations",
     register(server: McpServer): void {
         server.registerTool("listPRComments", {
-            description: "List comments on a pull request. Defaults to UNRESOLVED only — most users care about open comments. Set state to ALL or RESOLVED to change.",
+            description: "List PR comments (default: unresolved only).",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                state: z.enum(["UNRESOLVED", "RESOLVED", "ALL"]).optional().describe("Filter by resolved state (default: UNRESOLVED). Use ALL to include resolved comments."),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...prArgs,
+                state: z.enum(["UNRESOLVED", "RESOLVED", "ALL"]).optional().describe("Default UNRESOLVED"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -53,18 +42,16 @@ const prCommentsModule = {
             }
         });
         server.registerTool("addPRComment", {
-            description: "Add a comment to a pull request (general or inline). If a review session is active (via startReview), the comment is buffered instead of posted immediately (only for the session that started the review; other sessions post immediately).",
+            description: "Add a general or inline PR comment (buffered while this session has a review open).",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                text: z.string().describe("Comment text"),
-                parentId: z.coerce.number().optional().describe("Parent comment ID for replies"),
-                anchorPath: z.string().optional().describe("File path for inline comment"),
-                anchorLine: z.coerce.number().optional().describe("Line number for inline comment"),
+                ...prArgs,
+                text: z.string(),
+                parentId: z.coerce.number().optional().describe("Reply to this comment"),
+                anchorPath: z.string().optional().describe("Inline: file path"),
+                anchorLine: z.coerce.number().optional().describe("Inline: line"),
                 anchorLineType: z.enum(["ADDED", "REMOVED", "CONTEXT"]).optional().describe("Line type for inline comment"),
-                anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM = old file, TO = new file"),
-                severity: z.enum(["NORMAL", "BLOCKER"]).optional().describe("Comment severity (BLOCKER = task)"),
+                anchorFileType: z.enum(["FROM", "TO"]).optional().describe("FROM=old, TO=new file"),
+                severity: z.enum(["NORMAL", "BLOCKER"]).optional().describe("BLOCKER = task"),
             },
         }, async (args) => {
             try {
@@ -105,10 +92,8 @@ const prCommentsModule = {
         server.registerTool("getPRComment", {
             description: "Get a specific pull request comment by ID",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                commentId: z.coerce.number().describe(DESC_COMMENT_ID),
+                ...prArgs,
+                commentId: z.coerce.number(),
             },
         }, async (args) => {
             try {
@@ -123,12 +108,10 @@ const prCommentsModule = {
         server.registerTool("updatePRComment", {
             description: "Update a pull request comment",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                commentId: z.coerce.number().describe(DESC_COMMENT_ID),
-                text: z.string().describe("Updated comment text"),
-                version: z.coerce.number().describe(DESC_COMMENT_VERSION),
+                ...prArgs,
+                commentId: z.coerce.number(),
+                text: z.string(),
+                version: z.coerce.number(),
             },
         }, async (args) => {
             try {
@@ -141,13 +124,11 @@ const prCommentsModule = {
             }
         });
         server.registerTool("resolvePRComment", {
-            description: "Resolve a pull request comment thread (sets threadResolved to true)",
+            description: "Resolve a PR comment thread",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                commentId: z.coerce.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
-                version: z.coerce.number().describe(DESC_COMMENT_VERSION),
+                ...prArgs,
+                commentId: z.coerce.number().describe("Root comment of the thread"),
+                version: z.coerce.number(),
             },
         }, async (args) => {
             try {
@@ -160,13 +141,11 @@ const prCommentsModule = {
             }
         });
         server.registerTool("reopenPRComment", {
-            description: "Reopen a resolved pull request comment thread (sets threadResolved to false)",
+            description: "Reopen a resolved PR comment thread",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                commentId: z.coerce.number().describe("Comment ID (must be the root/top-level comment of the thread)"),
-                version: z.coerce.number().describe(DESC_COMMENT_VERSION),
+                ...prArgs,
+                commentId: z.coerce.number().describe("Root comment of the thread"),
+                version: z.coerce.number(),
             },
         }, async (args) => {
             try {
@@ -181,11 +160,9 @@ const prCommentsModule = {
         server.registerTool("deletePRComment", {
             description: "Delete a pull request comment (requires BITBUCKET_ENABLE_DANGEROUS=true)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
-                commentId: z.coerce.number().describe(DESC_COMMENT_ID),
-                version: z.coerce.number().describe(DESC_COMMENT_VERSION),
+                ...prArgs,
+                commentId: z.coerce.number(),
+                version: z.coerce.number(),
             },
         }, async (args) => {
             try {

@@ -35,3 +35,35 @@ describe("addPullRequestReviewers", () => {
         expect(JSON.parse(body)).toMatchObject({ failed: 1, errors: [{ username: "alice", error: "boom" }] });
     });
 });
+
+describe("default project (#54)", () => {
+    const withDefault = (defaultProject: string | undefined) =>
+        initClient({ baseUrl: "http://bitbucket.invalid/rest/api/latest", token: "t", username: undefined, password: undefined, defaultProject, enableDangerous: false, timeoutMs: 30_000 });
+    afterEach(() => withDefault(undefined));
+    const run = (name: string, args: Record<string, unknown>) => {
+        const handler = handlers.get(name);
+        if (handler === undefined) throw new Error(`${name} not registered`);
+        return handler(args);
+    };
+
+    test("listPullRequests without projectKey uses BITBUCKET_DEFAULT_PROJECT", async () => {
+        withDefault("PROJ");
+        const get = mock(() => Promise.resolve({ data: { values: [], isLastPage: true } }));
+        client().get = get;
+        await run("listPullRequests", { repoSlug: "r" });
+        expect((get.mock.calls[0] as unknown[])[0]).toBe("/projects/PROJ/repos/r/pull-requests");
+    });
+    test("an explicit projectKey wins over the default", async () => {
+        withDefault("PROJ");
+        const get = mock(() => Promise.resolve({ data: { values: [], isLastPage: true } }));
+        client().get = get;
+        await run("listPullRequests", { projectKey: "OTHER", repoSlug: "r" });
+        expect((get.mock.calls[0] as unknown[])[0]).toBe("/projects/OTHER/repos/r/pull-requests");
+    });
+    test("no projectKey and no default returns one clear line", async () => {
+        withDefault(undefined);
+        const result = await run("listPullRequests", { repoSlug: "r" });
+        expect(result.isError).toBe(true);
+        expect(result.content[0]?.text).toBe("projectKey is required (or set BITBUCKET_DEFAULT_PROJECT)");
+    });
+});

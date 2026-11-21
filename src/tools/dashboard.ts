@@ -1,13 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { pageArgs } from "#lib/params.js";
 import { getClient } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeArray, summarizePullRequest } from "#lib/field-filter.js";
 // Shared description constants
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const DESC_STATE = "PR state filter";
 /** Bitbucket DC dashboard: pull requests scoped to the current (authenticated) user. */
 const dashboardModule = {
@@ -16,12 +14,10 @@ const dashboardModule = {
     description: "Bitbucket DC pull requests scoped to the current user",
     register(server: McpServer): void {
         server.registerTool("listMyPullRequests", {
-            description: "List pull requests authored by the current (authenticated) user across all repositories",
+            description: "List my pull requests across all repositories",
             inputSchema: {
                 state: z.enum(["OPEN", "MERGED", "DECLINED", "ALL"]).optional().describe(DESC_STATE),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -43,12 +39,10 @@ const dashboardModule = {
             }
         });
         server.registerTool("listPullRequestsAwaitingMyReview", {
-            description: "List open pull requests where the current (authenticated) user is a reviewer",
+            description: "List open PRs I review",
             inputSchema: {
                 state: z.enum(["OPEN", "MERGED", "DECLINED", "ALL"]).optional().describe(DESC_STATE),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...pageArgs,
             },
         }, async (args) => {
             try {

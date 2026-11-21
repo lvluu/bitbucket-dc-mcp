@@ -1,15 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { repoArgs, pageArgs } from "#lib/params.js";
 import { getClient, getOriginUrl, repoFilePath, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeArray, summarizeCodeSearchResult, summarizePullRequestCondition, summarizeRestriction } from "#lib/field-filter.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const DESC_BRANCH_TAG_COMMIT = "Branch, tag, or commit hash";
 const repositoryInsightsModule = {
     type: "tool",
@@ -17,14 +13,11 @@ const repositoryInsightsModule = {
     description: "Bitbucket DC repository insight operations (search, blame, settings, reviewers, restrictions)",
     register(server: McpServer): void {
         server.registerTool("searchCode", {
-            description: "Search code in a repository (Bitbucket DC code search)",
+            description: "Search code in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                query: z.string().describe("Search text (e.g. 'todoFIXME' or a function name)"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                query: z.string().describe("Search text"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -50,13 +43,12 @@ const repositoryInsightsModule = {
             }
         });
         server.registerTool("getFileBlame", {
-            description: "Get blame (author/commit per line) for a file at a revision",
+            description: "Get blame for a file",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                path: z.string().describe("File path within the repository"),
+                ...repoArgs,
+                path: z.string().describe("File path"),
                 at: z.string().optional().describe(DESC_BRANCH_TAG_COMMIT),
-                noContent: z.boolean().optional().describe("If true, return blame only and omit file contents"),
+                noContent: z.boolean().optional().describe("Blame only, no file content"),
             },
         }, async (args) => {
             try {
@@ -74,10 +66,9 @@ const repositoryInsightsModule = {
             }
         });
         server.registerTool("getPullRequestSettings", {
-            description: "Get the pull request settings (merge config, required approvers) for a repository",
+            description: "Get repository PR settings (merge config, required approvers)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
+                ...repoArgs,
             },
         }, async (args) => {
             try {
@@ -90,18 +81,15 @@ const repositoryInsightsModule = {
             }
         });
         server.registerTool("getDefaultReviewers", {
-            description: "List the default reviewer conditions configured for a repository",
+            description: "List default reviewer conditions",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                ...pageArgs,
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                const result = await fetchPage(client, `${getOriginUrl()}/rest/default-reviewers/latest/projects/${encodeURIComponent(args.projectKey)}/repos/${encodeURIComponent(args.repoSlug)}/conditions`, { limit: args.limit, start: args.start, all: args.all });
+                const result = await fetchPage(client, `${getOriginUrl()}/rest/default-reviewers/latest${repoPath(args.projectKey, args.repoSlug)}/conditions`, { limit: args.limit, start: args.start, all: args.all });
                 const summaryValues = summarizeArray(result.values, summarizePullRequestCondition);
                 return jsonResult(pageResult(result, summaryValues));
             }
@@ -110,15 +98,12 @@ const repositoryInsightsModule = {
             }
         });
         server.registerTool("getBranchRestrictions", {
-            description: "List the branch restrictions (e.g. branch permissions) configured for a repository",
+            description: "List branch restrictions (permissions)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                type: z.string().optional().describe("Restriction type to filter on (e.g. read-only, push, fast-forward-only, no-deletes, no-reverts, no-rewrites, pull-request-only)"),
-                matcherType: z.string().optional().describe("Matcher type to filter on (e.g. BRANCH, PATTERN, BRANCH_PREFIX, MODEL_BRANCH, MODEL_BRANCH_PREFIX)"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                type: z.string().optional().describe("e.g. read-only, no-deletes, pull-request-only"),
+                matcherType: z.string().optional().describe("e.g. BRANCH, PATTERN"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -128,7 +113,7 @@ const repositoryInsightsModule = {
                     params.type = args.type;
                 if (args.matcherType !== undefined)
                     params.matcherType = args.matcherType;
-                const result = await fetchPage(client, `${getOriginUrl()}/rest/branch-permissions/latest/projects/${encodeURIComponent(args.projectKey)}/repos/${encodeURIComponent(args.repoSlug)}/restrictions`, { limit: args.limit, start: args.start, all: args.all, params });
+                const result = await fetchPage(client, `${getOriginUrl()}/rest/branch-permissions/latest${repoPath(args.projectKey, args.repoSlug)}/restrictions`, { limit: args.limit, start: args.start, all: args.all, params });
                 const summaryValues = summarizeArray(result.values, summarizeRestriction);
                 return jsonResult(pageResult(result, summaryValues));
             }

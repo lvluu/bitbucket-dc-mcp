@@ -1,3 +1,4 @@
+import { resolveProject } from "#lib/client.js";
 /**
  * In-memory merge queue state management.
  *
@@ -7,8 +8,8 @@
 // Key: `${projectKey}/${repoSlug}` -> array of PR IDs in queue order
 const mergeQueues = new Map<string, number[]>();
 
-export function mergeQueueKey(projectKey: string, repoSlug: string): string {
-    return `${projectKey}/${repoSlug}`;
+export function mergeQueueKey(projectKey: string | undefined, repoSlug: string): string {
+    return `${resolveProject(projectKey)}/${repoSlug}`;
 }
 
 /**

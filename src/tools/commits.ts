@@ -1,16 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { repoArgs, pageArgs } from "#lib/params.js";
 import { commitDiffPath, getClient, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeCommit, summarizeArray } from "#lib/field-filter.js";
 // Shared description constants
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_COMMIT_HASH = "Commit hash";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const commitsModule = {
     type: "tool",
     name: "commits",
@@ -19,14 +14,11 @@ const commitsModule = {
         server.registerTool("listCommits", {
             description: "List commits in a repository",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                until: z.string().optional().describe("Commit hash or ref to list commits until"),
-                since: z.string().optional().describe("Commit hash or ref to list commits since (exclusive)"),
-                path: z.string().optional().describe("Filter commits that touch this file path"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                until: z.string().optional().describe("Newest ref"),
+                since: z.string().optional().describe("Oldest ref (exclusive)"),
+                path: z.string().optional().describe("Only commits touching this path"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -49,9 +41,8 @@ const commitsModule = {
         server.registerTool("getCommit", {
             description: "Get details of a specific commit",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                commitId: z.string().describe(DESC_COMMIT_HASH),
+                ...repoArgs,
+                commitId: z.string(),
             },
         }, async (args) => {
             try {
@@ -66,12 +57,9 @@ const commitsModule = {
         server.registerTool("getCommitChanges", {
             description: "Get list of files changed in a commit",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                commitId: z.string().describe(DESC_COMMIT_HASH),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                commitId: z.string(),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
@@ -84,12 +72,11 @@ const commitsModule = {
             }
         });
         server.registerTool("getCommitDiff", {
-            description: "Get the diff for a specific commit (whole commit, or one file when path is given)",
+            description: "Get a commit diff (whole commit, or one file)",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                commitId: z.string().describe(DESC_COMMIT_HASH),
-                path: z.string().optional().describe("File path to diff; omit for the whole commit"),
+                ...repoArgs,
+                commitId: z.string(),
+                path: z.string().optional().describe("One file; omit for all"),
                 contextLines: z.coerce.number().optional().describe("Number of context lines"),
             },
         }, async (args) => {

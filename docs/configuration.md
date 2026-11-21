@@ -10,7 +10,7 @@ Set variables in the client's `env` block, your shell, or a `.env` file in the w
 | `BITBUCKET_TOKEN` | Yes* | Personal access token (Bearer auth) | — |
 | `BITBUCKET_USERNAME` | Yes* | Username for basic auth | — |
 | `BITBUCKET_PASSWORD` | Yes* | Password for basic auth | — |
-| `BITBUCKET_DEFAULT_PROJECT` | No | Default project key for tools that accept `projectKey` | — |
+| `BITBUCKET_DEFAULT_PROJECT` | No | Project key used when a tool call omits `projectKey` (every repo, PR and project tool) | — |
 | `BITBUCKET_ENABLE_DANGEROUS` | No | Enable destructive operations (`deletePRComment`, `deleteBranch`) | `false` |
 | `BITBUCKET_TIMEOUT_MS` | No | Per-request timeout in milliseconds; a request exceeding it fails instead of hanging | `30000` |
 | `BITBUCKET_VERBOSE` | No | Disable the token squeeze (pretty JSON, no field stripping, no text cap) | `false` |

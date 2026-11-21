@@ -1,13 +1,11 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { prArgs } from "#lib/params.js";
 import { getClient, prPath } from "#lib/client.js";
 import type { AxiosInstance } from "axios";
 import { formatError, jsonResult, textResult, type ToolResult } from "#lib/errors.js";
 import type { PendingComment } from "#lib/review-state.js";
 import { reviewKey, startReviewSession, getReviewSession, clearReviewSession, releaseReviewOwner, } from "#lib/review-state.js";
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_PR_ID = "Pull request ID";
 function errorResult(error: unknown): ToolResult {
     return {
         content: [
@@ -61,32 +59,28 @@ const prReviewModule = {
             previousOnClose?.();
         };
         server.registerTool("startReview", {
-            description: "Start a review session for a pull request. While a review is active, comments added via addPRComment are buffered in memory instead of being posted immediately. Use finishReview to publish all buffered comments at once, or discardReview to drop them. The review belongs to this MCP session and is dropped when the session closes (HTTP: after MCP_SESSION_IDLE_TTL_MS idle).",
+            description: "Start a review: addPRComment buffers comments until finishReview or discardReview.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, (args) => {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
                 startReviewSession(key, server);
-                return textResult(`Review session started for ${args.projectKey}/${args.repoSlug} PR #${String(args.prId)}. Comments added via addPRComment will be buffered until you call finishReview.`);
+                return textResult(`Review session started for ${key} PR. Comments added via addPRComment will be buffered until you call finishReview.`);
             }
             catch (error) {
                 return errorResult(error);
             }
         });
         server.registerTool("finishReview", {
-            description: "Finish a review session: publish all buffered comments and optionally set approval status. Comments are posted sequentially. Partial failures are reported in the result. The status change is skipped if every buffered comment failed.",
+            description: "Publish buffered review comments, then optionally set your review status.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
                 reviewStatus: z
                     .enum(["APPROVED", "UNAPPROVED"])
                     .optional()
-                    .describe("Set reviewer status after posting comments (APPROVED = approve, UNAPPROVED = remove approval)"),
+                    .describe("Status to set after posting"),
             },
         }, async (args) => {
             try {
@@ -124,11 +118,9 @@ const prReviewModule = {
             }
         });
         server.registerTool("discardReview", {
-            description: "Discard a review session, dropping all buffered comments without publishing them.",
+            description: "Drop the review and its buffered comments.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, (args) => {
             try {
@@ -141,11 +133,9 @@ const prReviewModule = {
             }
         });
         server.registerTool("listPendingReviewComments", {
-            description: "List all buffered comments in the current review session for a pull request.",
+            description: "List buffered review comments.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                prId: z.coerce.number().describe(DESC_PR_ID),
+                ...prArgs,
             },
         }, (args) => {
             try {

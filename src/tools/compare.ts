@@ -1,29 +1,22 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import { repoArgs, pageArgs } from "#lib/params.js";
 import { getClient, repoPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
 import { summarizeCommit, summarizeArray } from "#lib/field-filter.js";
-const DESC_PROJECT_KEY = "Project key";
-const DESC_REPO_SLUG = "Repository slug";
-const DESC_ITEMS_PER_PAGE = "Items per page";
-const DESC_START_INDEX = "Start index";
-const DESC_FETCH_ALL_PAGES = "Fetch all pages";
 const compareModule = {
     type: "tool",
     name: "compare",
     description: "Bitbucket DC ref comparison operations",
     register(server: McpServer): void {
         server.registerTool("compareRefs", {
-            description: "Compare two refs (branches, tags or commit hashes) in a repository and list the commits reachable from the 'to' ref but not the 'from' ref.",
+            description: "List commits in 'to' that are not in 'from'.",
             inputSchema: {
-                projectKey: z.string().describe(DESC_PROJECT_KEY),
-                repoSlug: z.string().describe(DESC_REPO_SLUG),
-                from: z.string().describe("Source ref: branch name, tag, or commit hash (e.g. 'main' or 'feature/x')"),
-                to: z.string().describe("Target ref: branch name, tag, or commit hash (e.g. 'main' or 'feature/x')"),
-                limit: z.coerce.number().optional().describe(DESC_ITEMS_PER_PAGE),
-                start: z.coerce.number().optional().describe(DESC_START_INDEX),
-                all: z.boolean().optional().describe(DESC_FETCH_ALL_PAGES),
+                ...repoArgs,
+                from: z.string().describe("Branch, tag or commit"),
+                to: z.string().describe("Branch, tag or commit"),
+                ...pageArgs,
             },
         }, async (args) => {
             try {
