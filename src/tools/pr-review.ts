@@ -64,7 +64,7 @@ const prReviewModule = {
             try {
                 const key = reviewKey(args.projectKey, args.repoSlug, args.prId);
                 startReviewSession(key, server);
-                return textResult(`Review session started for ${key} PR. Comments added via addPRComment will be buffered until you call finishReview.`);
+                return textResult(`Review started for ${key} (project/repo/PR). Comments added via addPRComment will be buffered until you call finishReview.`);
             }
             catch (error) {
                 return errorResult(error);

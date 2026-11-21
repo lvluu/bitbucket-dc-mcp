@@ -6,7 +6,7 @@ import { autoRegisterModules } from "./auto-loader.js";
 
 // tools/list is sent on every session start, so its size is a per-session token cost (#61).
 // Budget: 46,155 bytes before #61, minus 25 %. Raise it only with a reason in the PR.
-const TOOLS_LIST_BUDGET = 34_700;
+const TOOLS_LIST_BUDGET = 34_616;
 const MAX_DESCRIPTION = 200;
 
 const client = new Client({ name: "tool-defs", version: "1" });

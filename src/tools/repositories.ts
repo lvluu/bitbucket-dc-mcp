@@ -80,9 +80,8 @@ const repositoriesModule = {
         server.registerTool("forkRepository", {
             description: "Fork a repository",
             inputSchema: {
-                projectKey: z.string().describe("Source project key"),
-                repoSlug: z.string().describe("Source repository slug"),
-                targetProjectKey: z.string().optional().describe("Target project key for the fork"),
+                ...repoArgs,
+                targetProjectKey: z.string().optional().describe("Default: your personal project"),
                 name: z.string().optional().describe("Fork name"),
             },
         }, async (args) => {
