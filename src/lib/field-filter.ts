@@ -99,30 +99,32 @@ export function summarizeBranch(branch: Loose): Loose {
     };
 }
 /**
- * Creates a summary of a commit with only essential fields.
+ * Summarizes a commit for list results: full id (build-status needs it), first message line,
+ * author name and date; committer only when it differs from the author; parents as ids.
  */
 export function summarizeCommit(commit: Loose): Loose {
-    const author = commit.author as UserLike | undefined;
-    const committer = commit.committer as UserLike | undefined;
+    const author = (commit.author as UserLike | undefined)?.name;
+    const committer = (commit.committer as UserLike | undefined)?.name;
+    const parents = Array.isArray(commit.parents) ? commit.parents.map((p: Loose) => p.id) : undefined;
     return {
         id: commit.id,
-        displayId: commit.displayId,
-        message: commit.message,
-        author: author
-            ? {
-                name: author.name,
-                emailAddress: author.emailAddress,
-            }
-            : undefined,
-        authorTimestamp: commit.authorTimestamp,
-        committer: committer
-            ? {
-                name: committer.name,
-                emailAddress: committer.emailAddress,
-            }
-            : undefined,
-        committerTimestamp: commit.committerTimestamp,
-        parents: commit.parents,
+        message: typeof commit.message === "string" ? commit.message.split("\n", 1)[0] : commit.message,
+        author,
+        date: commit.authorTimestamp,
+        committer: committer !== author ? committer : undefined,
+        parents,
+    };
+}
+/**
+ * Summarizes a changed file (PR or commit changes): path, change type, and srcPath only for moves/copies.
+ */
+export function summarizeChange(change: Loose): Loose {
+    const path = (change.path as { toString?: unknown } | undefined)?.toString;
+    const srcPath = (change.srcPath as { toString?: unknown } | undefined)?.toString;
+    return {
+        path,
+        type: change.type,
+        srcPath: srcPath !== path ? srcPath : undefined,
     };
 }
 /**

@@ -193,6 +193,36 @@ function mkRepo(slug, name, isPublic) {
   };
 }
 
+// ---- diffs / changes (shape of the real DC JSON) ---------------------------
+function dcPath(p) {
+  const parts = p.split("/");
+  const name = parts.at(-1);
+  return { components: parts, parent: parts.slice(0, -1).join("/"), name, extension: name.split(".").at(-1), toString: p };
+}
+function dcDiff(file, url) {
+  const ctx = Number(url.searchParams.get("contextLines") ?? 10);
+  const l = (n, text) => ({ source: n, destination: n, line: text, truncated: false });
+  return {
+    fromHash: HEAD2, toHash: HEAD, contextLines: ctx, whitespace: "SHOW",
+    diffs: [{
+      source: dcPath(file), destination: dcPath(file), truncated: false,
+      hunks: [{
+        sourceLine: 1, sourceSpan: 2, destinationLine: 1, destinationSpan: 3, truncated: false,
+        segments: [
+          { type: "CONTEXT", lines: [l(1, "line")], truncated: false },
+          { type: "ADDED", lines: [l(2, "added")], truncated: false },
+          { type: "CONTEXT", lines: [l(2, "end")], truncated: false },
+        ],
+      }],
+    }],
+    truncated: false,
+  };
+}
+const CHANGES = [
+  { contentId: sha("c1"), fromContentId: sha("c0"), path: dcPath("src/index.ts"), srcPath: dcPath("src/index.ts"), executable: false, percentUnchanged: -1, type: "MODIFY", nodeType: "FILE", properties: { gitChangeType: "MODIFY" } },
+  { contentId: sha("c2"), fromContentId: sha("c3"), path: dcPath("src/lib/new-name.ts"), srcPath: dcPath("src/lib/old-name.ts"), executable: false, percentUnchanged: 90, type: "MOVE", nodeType: "FILE", properties: { gitChangeType: "RENAME" } },
+];
+
 // ---- helpers ---------------------------------------------------------------
 function paged(items, url) {
   const q = url.searchParams;
@@ -405,11 +435,11 @@ on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\.patch$/, (req, res, url, m) => {
   text(res, 200, `From ${sha("patch" + m[3])} Mon Sep 17 00:00:00 2001\nSubject: PR ${m[3]}\n\n---\n src/index.ts | 1 +\n`);
 });
-on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/diff$/, (req, res, url, m) => {
-  json(res, 200, { diffs: [{ source: { toString: "index.ts" }, destination: { toString: "index.ts" }, hunks: [{ segments: [{ lines: [{ type: "ADDED", line: "added" }] }] }], truncated: false }] });
+on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/diff(?:\/(.+))?$/, (req, res, url, m) => {
+  json(res, 200, dcDiff(m[4] ? decodeURIComponent(m[4]) : "src/index.ts", url));
 });
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/changes$/, (req, res, url, m) => {
-  json(res, 200, paged([{ path: { toString: "src/index.ts" }, srcPath: { toString: "src/index.ts" }, type: "MODIFY" }], url));
+  json(res, 200, paged(CHANGES, url));
 });
 on("POST", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/pull-requests\/(\d+)\/merge$/, async (req, res, url, m) => {
   const pr = findPR(decodeURIComponent(m[1]), decodeURIComponent(m[2]), m[3]);
@@ -555,12 +585,11 @@ on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits$/, (re
   json(res, 200, paged(COMMITS, url));
 });
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)\/changes$/, (req, res, url) => {
-  json(res, 200, paged([{ path: { toString: "src/index.ts" }, srcPath: { toString: "src/index.ts" }, type: "MODIFY" }], url));
+  json(res, 200, paged(CHANGES, url));
 });
 // GET .../commits/{commitId}/diff/{path}: {path} is optional (whole commit when omitted)
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)\/diff(?:\/(.+))?$/, (req, res, url, m) => {
-  const file = m[4] ? decodeURIComponent(m[4]) : "index.ts";
-  json(res, 200, { diffs: [{ source: { toString: file }, destination: { toString: file }, hunks: [], truncated: false }], commit: m[3], path: m[4] ? file : null });
+  json(res, 200, dcDiff(m[4] ? decodeURIComponent(m[4]) : "src/index.ts", url));
 });
 on("GET", /^\/rest\/api\/1\.0\/projects\/([^/]+)\/repos\/([^/]+)\/commits\/([^/]+)$/, (req, res, url, m) => {
   const c = COMMITS.find((x) => x.id === m[3] || x.displayId === m[3]);

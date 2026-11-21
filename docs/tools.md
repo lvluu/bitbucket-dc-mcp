@@ -13,10 +13,10 @@ usage detail lives in `skills/bitbucket-dc/SKILL.md`.
 | PR comments | `listPRComments` (unresolved by default; a resolved task counts as resolved), `addPRComment`, `getPRComment`, `updatePRComment`, `resolvePRComment`, `reopenPRComment`, `deletePRComment`† |
 | PR review sessions | `startReview`, `listPendingReviewComments`, `finishReview`, `discardReview` |
 | PR tasks | `listPRTasks`, `addBlockerComment`, `resolveTask`, `reopenTask` |
-| PR diff | `getPullRequestChanges`, `getPullRequestDiff`, `streamPullRequestDiff`, `getPullRequestPatch` |
+| PR diff | `getPullRequestChanges`, `getPullRequestDiff` (unified text; one `path`, `contextLines` default 3), `streamPullRequestDiff`, `getPullRequestPatch` |
 | PR activity | `getPullRequestActivity`, `getPullRequestCommits`, `getPullRequestParticipants` |
 | Branches & tags | `listBranches`, `createBranch`, `deleteBranch`†, `listTags`, `createTag` |
-| Commits | `listCommits`, `getCommit`, `getCommitChanges`, `getCommitDiff` (whole commit or one `path`) |
+| Commits | `listCommits`, `getCommit`, `getCommitChanges`, `getCommitDiff` (unified text; whole commit or one `path`) |
 | Compare refs | `compareRefs` |
 | Users | `getUser` |
 | Files | `browseFiles`, `getFileContent`, `listFiles`, `editFile` |
@@ -31,7 +31,9 @@ usage detail lives in `skills/bitbucket-dc/SKILL.md`.
 
 Every result is shrunk before it reaches the model: compact JSON, `links`/`link`/`avatarUrl` and null/empty
 fields removed (`false`, `0` and an empty `values` page are kept), long text capped at `BITBUCKET_MAX_CHARS`.
-List tools return field-trimmed summaries. `BITBUCKET_VERBOSE=true` gives raw output.
+List tools return field-trimmed summaries: commits as `{id, message (first line), author, date, committer?, parents}`,
+changed files as `{path, type, srcPath?}`. Diff tools render Bitbucket's JSON diff as unified text (about 60 %
+smaller). `BITBUCKET_VERBOSE=true` gives raw output (diffs stay text).
 
 ## Paging
 

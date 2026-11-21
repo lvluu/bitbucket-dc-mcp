@@ -1,32 +1,27 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { z } from "zod";
-import { prArgs, pageArgs } from "#lib/params.js";
-import { getClient, prPath } from "#lib/client.js";
+import { diffArgs, prArgs, pageArgs } from "#lib/params.js";
+import { getClient, prDiffPath, prPath } from "#lib/client.js";
+import { diffToText } from "#lib/diff-text.js";
+import { summarizeArray, summarizeChange } from "#lib/field-filter.js";
 import { formatError, jsonResult, textResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
-// Shared description constants
 const prDiffModule = {
     type: "tool",
     name: "pr-diff",
     description: "Bitbucket DC pull request diff, patch, and change operations",
     register(server: McpServer): void {
         server.registerTool("getPullRequestDiff", {
-            description: "Get the PR diff (JSON hunks)",
+            description: "Get the PR diff as unified text (whole PR, or one file)",
             inputSchema: {
                 ...prArgs,
-                contextLines: z.coerce.number().optional().describe("Context lines"),
-                withComments: z.boolean().optional().describe("Include comments in diff response"),
+                ...diffArgs,
             },
         }, async (args) => {
             try {
                 const client = getClient();
-                const params: Record<string, unknown> = {};
-                if (args.contextLines !== undefined)
-                    params.contextLines = args.contextLines;
-                if (args.withComments !== undefined)
-                    params.withComments = args.withComments;
-                const response = await client.get(`${prPath(args.projectKey, args.repoSlug, args.prId)}/diff`, { params });
-                return jsonResult(response.data);
+                const params = { contextLines: args.contextLines ?? 3, withComments: false };
+                const response = await client.get(prDiffPath(args.projectKey, args.repoSlug, args.prId, args.path), { params });
+                return textResult(diffToText(response.data));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
@@ -72,7 +67,7 @@ const prDiffModule = {
             try {
                 const client = getClient();
                 const result = await fetchPage(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/changes`, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(pageResult(result, result.values));
+                return jsonResult(pageResult(result, summarizeArray(result.values, summarizeChange)));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };

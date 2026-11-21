@@ -4,7 +4,7 @@ import { prArgs, pageArgs } from "#lib/params.js";
 import { getClient, prPath } from "#lib/client.js";
 import { formatError, jsonResult } from "#lib/errors.js";
 import { fetchPage, pageResult } from "#lib/pagination.js";
-import { summarizeActivity, summarizeArray } from "#lib/field-filter.js";
+import { summarizeActivity, summarizeArray, summarizeCommit } from "#lib/field-filter.js";
 // Shared description constants
 const prActivityModule = {
     type: "tool",
@@ -38,7 +38,7 @@ const prActivityModule = {
             try {
                 const client = getClient();
                 const result = await fetchPage(client, `${prPath(args.projectKey, args.repoSlug, args.prId)}/commits`, { limit: args.limit, start: args.start, all: args.all });
-                return jsonResult(pageResult(result, result.values));
+                return jsonResult(pageResult(result, summarizeArray(result.values, summarizeCommit)));
             }
             catch (error) {
                 return { content: [{ type: "text", text: formatError(error) }], isError: true };
